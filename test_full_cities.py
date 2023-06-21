@@ -1,33 +1,73 @@
 from selenium import webdriver
 from bigquery.bigquerier import BigQuerier
-import sys, logging, time
+import logging, logging.config, time
 
-logging.basicConfig(
-  level=logging.INFO,
-  format='[%(asctime)s] [%(name)s] %(levelname)s: %(message)s',
-  stream=sys.stdout
-)
+log_format = '[%(asctime)s] [%(name)s] %(levelname)s: %(message)s'
+log_starttime = time.strftime('%Y%m%d_%H%M%S')
+log_filename = r'logs\{0}.log'.format(log_starttime)
 
-def initialize_driver():
+#: Using DEBUG causes logging errors due to selenium logging the HTML, which
+#: contains special Unicode characters. (The program can continue, though.)
+log_config = {
+  "version": 1,
+  "disable_existing_loggers": False,
+  "formatters": {
+    "simple": {
+      "format": '[%(asctime)s] [%(name)s] %(levelname)s: %(message)s'
+    }
+  },
+  "handlers": {
+    "console": {
+      "class": "logging.StreamHandler",
+      "stream": "ext://sys.stdout",
+      "level": "INFO",
+      "formatter": "simple"
+    },
+    "file": {
+      "class": "logging.FileHandler",
+      "filename": log_filename,
+      "mode": "w",
+      "level": "INFO",
+      "formatter": "simple"
+    }
+  },
+  "root": {
+    "level": "INFO",
+    "handlers": ["console", "file"]        
+  }
+}
+
+logging.config.dictConfig(log_config)
+logger = logging.getLogger('main')
+
+# =============================================================================
+
+def initialize_driver(*, start_headless=True):
   options = webdriver.FirefoxOptions()
-  options.add_argument('-headless')
+  if start_headless:
+    options.add_argument('-headless')
   driver = webdriver.Firefox(options=options)
   return driver
 
 def main():
   keyword = 'pariwisata'
-  input_json_file = r'input_data\cities_data.json'
+  input_json_file = r'input_data\sample_cities_data.json'
 
-  logger = logging.getLogger('test_sample')
-  logger.setLevel(logging.INFO)
+  querier = BigQuerier(
+    input_json_file,
+    scroll_wait_seconds=2.0
+  )
   
   logger.info('Initializing webdriver')
   driver = initialize_driver()
   logger.info('Initialized webdriver')
 
-  querier = BigQuerier(driver, input_json_file)
   try:
-    querier.begin(keyword=keyword, query_depth=querier.INFINITE_SCROLL)
+    querier.begin(
+      driver,
+      keyword,
+      query_depth=0
+    )
   except Exception as e:
     logger.error(str(e))
     raise
