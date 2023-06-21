@@ -12,6 +12,7 @@ logging.basicConfig(
   level=logging.INFO,
   format='[%(asctime)s] [%(name)s] %(levelname)s: %(message)s'
 )
+logger = logging.getLogger(__name__)
 
 class Querier():
   __SCROLL_SUCCESS = 0
@@ -36,9 +37,7 @@ class Querier():
     loading_timeout_seconds=15.0,
     scroll_wait_seconds=2.5,
     scroll_retries=5
-  ):
-    self.logger = logging.getLogger(__name__)
-    
+  ):    
     self.__init_selectors()
     self._query           = None
     self._query_depth     = None
@@ -65,8 +64,8 @@ class Querier():
     self._query_language = query_language
     self._query_timestamp = int(time())
 
-    self.logger.info(
-      f'Starting query: "{query}"' + \
+    logger.debug(
+      f'Querying: "{query}"' + \
       f', language: {query_language}'
     )
     self.webdriver.get(
@@ -74,8 +73,8 @@ class Querier():
     )
   
   def grab_results(self):
-    self.logger.info(
-      f'Grabbing search results of "{self._query}"'
+    logger.debug(
+      f'Grabbing search results: "{self._query}"'
     )
     try:
       self.webdriver.find_element(
@@ -89,10 +88,13 @@ class Querier():
           d.find_element(By.CSS_SELECTOR, self.__RESULTS_BOTTOM_SELECTOR)
       )
     except NoSuchElementException:
-      self.logger.error('Could not grab results box')
+      logger.error(
+        'Could not find results box; '
+        'query may have outputted a location instead of search results'
+      )
       raise
     except Exception as e:
-      self.logger.exception(str(e))
+      logger.exception(e)
       raise
     
     #: Query depth of 1 --> only grab the first "page", no scroll needed
@@ -101,7 +103,7 @@ class Querier():
         log_depth = 'infinite'
       else:
         log_depth = str(self._query_depth)
-      self.logger.info(
+      logger.debug(
         f'Starting scrolling, depth: {log_depth}'
       )
       self._scroll_results()
@@ -112,8 +114,11 @@ class Querier():
     grabbed_html = query_element.get_attribute('innerHTML')
 
     query_final_count = self._count_results()
-    self.logger.info(
-      f'Completed search of "{self._query}" - found {str(query_final_count)} entry(s)'
+    logger.info(
+      f'Completed query: "{self._query}"'
+    )
+    logger.info(
+      f'Found {str(query_final_count)} entry(s)'
     )
 
     return Results(
@@ -122,8 +127,6 @@ class Querier():
       self._query_language,
       self._query_timestamp
     )
-  
-  # Internal use functions below
 
   def _count_results(self):
     try:
@@ -152,14 +155,14 @@ class Querier():
       try:
         scroll_status, results_count = self._scroll_results_once()
       except NoSuchElementException:
-        self.logger.info('Scroll - reached end of list, scroll completed')
+        logger.debug('Scroll - reached end of list, scroll completed')
         break
 
       if (
         scroll_status == self.__SCROLL_SUCCESS and
         self._query_depth == self.INFINITE_SCROLL
       ):
-        self.logger.debug(
+        logger.debug(
           'Scroll - Success' + \
           f' ({str(results_count)} entries, infinite scroll)'
         )
@@ -170,7 +173,7 @@ class Querier():
         self._query_depth != self.INFINITE_SCROLL
       ):
         scrolls_remaining = scrolls_remaining - 1
-        self.logger.debug(
+        logger.debug(
           'Scroll - Success' + \
           f' ({str(results_count)} entries' + \
           f', {str(scrolls_remaining)} scroll(s) left)'
@@ -179,18 +182,18 @@ class Querier():
 
       else:
         retries_remaining = retries_remaining - 1
-        self.logger.debug(
+        logger.debug(
           'Scroll - Failure' + \
           f' ({str(results_count)} entries, {str(retries_remaining)} retry(s) left)'
         )
     
     #: End of while loop
-    if scrolls_remaining == 0:
-      self.logger.info('Depth reached, scroll completed')
-    elif retries_remaining == 0:
-      self.logger.info('Out of scroll retries, scroll completed')
+    if scrolls_remaining == 0 and retries_remaining > 0:
+      logger.debug('Scroll - Completed (depth reached)')
+    elif scrolls_remaining > 0 and retries_remaining == 0:
+      logger.debug('Scroll - Completed (out of scroll retries)')
     else:
-      self.logger.info('Scroll completed')
+      logger.debug('Scroll - Completed')
 
   def _scroll_results_once(self):
     results_count_before = self._count_results()

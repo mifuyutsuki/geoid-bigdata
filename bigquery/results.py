@@ -8,10 +8,7 @@ logging.basicConfig(
   level=logging.INFO,
   format='[%(asctime)s] [%(name)s] %(levelname)s: %(message)s'
 )
-
-# -----------------------------------------------------------------------------
-# -----------------------------------------------------------------------------
-# -----------------------------------------------------------------------------
+logger = logging.getLogger(__name__)
 
 class Results:
   def __init_selectors(self):
@@ -40,12 +37,12 @@ class Results:
     self._query_language = query_language
     self._query_timestamp = query_timestamp
 
-    self.logger = logging.getLogger(__name__)
+    logger = logging.getLogger(__name__)
 
     results = []
 
-    self.logger.info(
-      f'Processing search results of "{self._query}"'
+    logger.info(
+      f'Processing results of query: "{self._query}"'
     )
 
     #: 1. Parse
@@ -58,8 +55,8 @@ class Results:
         results.append(result)
     
     #: 2. Get Subdivision
-    self.logger.info(
-      f'Getting municipality data of "{self._query}"'
+    logger.info(
+      f'Getting municipality data: "{self._query}"'
     )
     process_error_count = 0
     for result in results:
@@ -69,11 +66,11 @@ class Results:
         process_error_count = process_error_count + 1
         continue
     
-    self.logger.info(
-      f'Got municipality data of "{self._query}"'
+    logger.info(
+      f'Got municipality data: "{self._query}"'
     )
     if process_error_count > 0:     
-      self.logger.warning(
+      logger.warning(
         f'Could not pull municipality data of {process_error_count} entry(s)'
       )
 
@@ -81,9 +78,8 @@ class Results:
     self._results = results
     self._results_count = len(results)
 
-    self.logger.info(
-      f'Processed search results of "{self._query}"' + \
-      f' - {self._results_count} entry(s)'
+    logger.info(
+      f'Processed results of query: "{self._query}"'
     )
 
   def export_csv(
@@ -111,7 +107,7 @@ class Results:
       csv_writer.writeheader()
       csv_writer.writerows(results)
 
-    self.logger.info(
+    logger.info(
       f'Exported query to CSV file "{filename}"'
     )
   
@@ -120,17 +116,12 @@ class Results:
       raise ValueError('No search results entries to export')
     if len(filename) <= 0:
       raise ValueError('Filename must not be empty')
-    
-    self.logger.info(
-      f'Exporting to JSON file "{filename}"' + \
-      f' - indent: {str(indent)}'
-    )
-
+  
     json_dump = self.report()
     
     with open(filename, 'w', encoding='UTF-8') as json_file:
       json.dump(json_dump, json_file, indent=indent)
-    self.logger.info(
+    logger.info(
       f'Exported query to JSON file "{filename}"'
     )
 
@@ -142,7 +133,7 @@ class Results:
       'query_results_count' : self.results_count,
       'query_results'       : self.results
     }
-    self.logger.info(
+    logger.debug(
       f'Generated query report of "{self.query}"'
     )
     return deepcopy(report_dump)
