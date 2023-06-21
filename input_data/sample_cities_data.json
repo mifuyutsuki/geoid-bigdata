@@ -1,0 +1,38 @@
+[
+ {
+  "id_provinsi": "35",
+  "nama_propinsi": "JAWA TIMUR",
+  "id_kabupaten_Kota": "3510",
+  "nama_kabupaten_kota": "kabupaten banyuwangi"
+ },
+ {
+  "id_provinsi": "35",
+  "nama_propinsi": "JAWA TIMUR",
+  "id_kabupaten_Kota": "3576",
+  "nama_kabupaten_kota": "kota mojokerto"
+ },
+ {
+  "id_provinsi": "35",
+  "nama_propinsi": "JAWA TIMUR",
+  "id_kabupaten_Kota": "3578",
+  "nama_kabupaten_kota": "kota surabaya"
+ },
+ {
+  "id_provinsi": "32",
+  "nama_propinsi": "JAWA BARAT",
+  "id_kabupaten_Kota": "3204",
+  "nama_kabupaten_kota": "kabupaten bandung"
+ },
+ {
+  "id_provinsi": "32",
+  "nama_propinsi": "JAWA BARAT",
+  "id_kabupaten_Kota": "3273",
+  "nama_kabupaten_kota": "kota bandung"
+ },
+ {
+  "id_provinsi": "61",
+  "nama_propinsi": "KALIMANTAN BARAT",
+  "id_kabupaten_Kota": "6106",
+  "nama_kabupaten_kota": "kabupaten kapuas hulu"
+ }
+]
