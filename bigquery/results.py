@@ -33,6 +33,7 @@ class Results:
     query_timestamp: int
   ):
     self.__init_selectors()
+    self._keys = None
     self._query = query
     self._query_language = query_language
     self._query_timestamp = query_timestamp
@@ -62,7 +63,8 @@ class Results:
     for result in results:
       try:
         result = self._process_fields_municipality(result)
-      except (KeyError, requests.HTTPError):
+      except (ValueError, KeyError, requests.HTTPError) as e:
+        logger.error(str(e))
         process_error_count = process_error_count + 1
         continue
     
@@ -81,76 +83,50 @@ class Results:
     logger.info(
       f'Processed results of query: "{self._query}"'
     )
-
-  def export_csv(
-    self,
-    filename: str,
-    quoting=csv.QUOTE_ALL,
-    lineterminator='\n'
-  ):
-    if len(self.results) <= 0:
-      raise ValueError('No search results entries to export')
-    if len(filename) <= 0:
-      raise ValueError('Filename cannot be blank')
-    
-    # Fields with newlines cause issues in CSV
-    results = deepcopy(self.results)
-    for result in results:
-      for key in result.keys():
-        result[key] = result[key].replace('\n', '; ')
-    
-    with open(filename, 'w', encoding='UTF-8') as csv_file:
-      csv_writer = csv.DictWriter( \
-        csv_file, fieldnames=self._keys, \
-        quoting=quoting, lineterminator=lineterminator
-      )
-      csv_writer.writeheader()
-      csv_writer.writerows(results)
-
-    logger.info(
-      f'Exported query to CSV file "{filename}"'
-    )
   
-  def export_json(self, filename: str, indent=1) -> None:
-    if len(self.results) <= 0:
-      raise ValueError('No search results entries to export')
-    if len(filename) <= 0:
-      raise ValueError('Filename must not be empty')
-  
-    json_dump = self.report()
-    
-    with open(filename, 'w', encoding='UTF-8') as json_file:
-      json.dump(json_dump, json_file, indent=indent)
-    logger.info(
-      f'Exported query to JSON file "{filename}"'
-    )
+  def _process_entry(self, entry: Tag) -> dict:
+    result_entry = dict()
+    result_entry['location_name'] = self._process_field_location_name(entry)
+    result_entry['location_type'] = self._process_field_location_type(entry)
+    result_entry['latitude']      = self._process_field_latitude(entry) 
+    result_entry['longitude']     = self._process_field_longitude(entry)
 
-  def report(self) -> dict:
-    report_dump = {
-      'query'               : self.query,
-      'query_language'      : self.query_language,
-      'query_timestamp'     : self.query_timestamp,
-      'query_results_count' : self.results_count,
-      'query_results'       : self.results
-    }
-    logger.debug(
-      f'Generated query report of "{self.query}"'
-    )
-    return deepcopy(report_dump)
-  
-  # Internal use functions below
+    #: These fields are filled in another process function
+    result_entry['provinsi']      = ''
+    result_entry['kab_kota']      = ''
+    result_entry['id_kecamatan']  = ''
+    result_entry['kecamatan']     = ''
+    result_entry['id_kel_desa']   = ''
+    result_entry['kel_desa']      = ''
+    result_entry['kode_pos']      = ''
+
+    result_entry['rating']        = self._process_field_rating(entry)
+    result_entry['reviews']       = self._process_field_reviews(entry)
+    result_entry['description']   = self._process_field_description(entry)
+    result_entry['location_link'] = self._process_field_location_link(entry)
+    result_entry['image_link']    = self._process_field_image_link(entry)
+    self._keys = result_entry.keys()
+    return result_entry
 
   def _get_municipality(self, latitude, longitude):
     request = requests.get(
-      f'https://kodeposku.com/api/nearest?lat={str(latitude)}&lon={str(longitude)}'
+      f'https://kodeposku.com/api/nearest?lat={str(latitude)}&lon={str(longitude)}',
+      timeout=(3.5, 5.0)
     )
     request.raise_for_status()
     return request.json()
   
   def _process_fields_municipality(self, result_entry):
+    if (
+      result_entry['latitude']  == '' or
+      result_entry['longitude'] == ''
+    ):
+      raise ValueError('Latitude/longitude field is empty')
+    
     municipality_fields = self._get_municipality(
         result_entry['latitude'], result_entry['longitude']
     )
+
     result_entry['provinsi']     = \
       str(municipality_fields['province'])
     result_entry['kab_kota']     = \
@@ -182,30 +158,6 @@ class Results:
     except IndexError:
       field  = ''
     return field
-
-  def _process_entry(self, entry: Tag) -> dict:
-    result_entry = dict()
-    result_entry['location_name'] = self._process_field_location_name(entry)
-    result_entry['location_type'] = self._process_field_location_type(entry)
-    result_entry['latitude']      = self._process_field_latitude(entry) 
-    result_entry['longitude']     = self._process_field_longitude(entry)
-
-    #: These fields are filled in another process function
-    result_entry['provinsi']      = ''
-    result_entry['kab_kota']      = ''
-    result_entry['id_kecamatan']  = ''
-    result_entry['kecamatan']     = ''
-    result_entry['id_kel_desa']   = ''
-    result_entry['kel_desa']      = ''
-    result_entry['kode_pos']      = ''
-
-    result_entry['rating']        = self._process_field_rating(entry)
-    result_entry['reviews']       = self._process_field_reviews(entry)
-    result_entry['description']   = self._process_field_description(entry)
-    result_entry['location_link'] = self._process_field_location_link(entry)
-    result_entry['image_link']    = self._process_field_image_link(entry)
-    self._keys = result_entry.keys()
-    return result_entry
   
   def _process_field_location_name(self, entry: Tag) -> str:
     field_selection = entry.select_one(self.__LOCATION_NAME_FIELD_SELECTOR)
@@ -301,6 +253,62 @@ class Results:
     else:
       field = ''
     return field
+  
+  def export_csv(
+    self,
+    filename: str,
+    quoting=csv.QUOTE_ALL,
+    lineterminator='\n'
+  ):
+    if len(self.results) <= 0:
+      raise ValueError('No search results entries to export')
+    if len(filename) <= 0:
+      raise ValueError('Filename cannot be blank')
+    
+    # Fields with newlines cause issues in CSV
+    results = deepcopy(self.results)
+    for result in results:
+      for key in result.keys():
+        result[key] = result[key].replace('\n', '; ')
+    
+    with open(filename, 'w', encoding='UTF-8') as csv_file:
+      csv_writer = csv.DictWriter( \
+        csv_file, fieldnames=self._keys, \
+        quoting=quoting, lineterminator=lineterminator
+      )
+      csv_writer.writeheader()
+      csv_writer.writerows(results)
+
+    logger.info(
+      f'Exported query to CSV file "{filename}"'
+    )
+  
+  def export_json(self, filename: str, indent=1) -> None:
+    if len(self.results) <= 0:
+      raise ValueError('No search results entries to export')
+    if len(filename) <= 0:
+      raise ValueError('Filename must not be empty')
+  
+    json_dump = self.report()
+    
+    with open(filename, 'w', encoding='UTF-8') as json_file:
+      json.dump(json_dump, json_file, indent=indent)
+    logger.info(
+      f'Exported query to JSON file "{filename}"'
+    )
+
+  def report(self) -> dict:
+    report_dump = {
+      'query'               : self.query,
+      'query_language'      : self.query_language,
+      'query_timestamp'     : self.query_timestamp,
+      'query_results_count' : self.results_count,
+      'query_results'       : self.results
+    }
+    logger.debug(
+      f'Generated query report of "{self.query}"'
+    )
+    return deepcopy(report_dump)
 
   def results_copy(self):
     return deepcopy(self._results)
