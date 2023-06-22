@@ -7,6 +7,7 @@ from time import time, sleep
 import logging
 
 from .results import Results
+from .selectors import *
 
 logging.basicConfig(
   level=logging.INFO,
@@ -18,28 +19,13 @@ class Querier():
   __SCROLL_SUCCESS = 0
   __SCROLL_FAILURE = 1
 
-  def __init_selectors(self):
-    #: Some class names do contain trailing whitespaces; however,
-    #: class trailing whitespaces in the HTML fed to bs4 are removed
-
-    #: Results selectors
-    self.__TARGET_RESULT_SELECTOR = 'div[class="Nv2PK THOPZb CpccDe "]'
-    self.__GENERAL_RESULT_SELECTOR = '.Nv2PK'
-    self.__RESULTS_BOX_SELECTOR = '.DxyBCb'
-    self.__RESULTS_BOTTOM_SELECTOR = '.lXJj5c'
-    # self.__RESULTS_END_SELECTOR = '.eKbjU'
-
-    #: Other selectors
-    self.__SEARCHBOX_SELECTOR = '#searchbox'
-
   def __init__(self,
     webdriver: WebDriver,
     *,
     loading_timeout_seconds=15.0,
     scroll_wait_seconds=2.5,
     scroll_retries=5
-  ):    
-    self.__init_selectors()
+  ):
     self._query           = None
     self._query_depth     = None
     self._query_language  = None
@@ -79,7 +65,7 @@ class Querier():
     )
     try:
       self.webdriver.find_element(
-        By.CSS_SELECTOR, self.__RESULTS_BOX_SELECTOR
+        By.CSS_SELECTOR, RESULTS_BOX_SELECTOR
       )
     except NoSuchElementException:
       logger.error(
@@ -94,7 +80,7 @@ class Querier():
       ) \
       .until(
         lambda d:
-          d.find_element(By.CSS_SELECTOR, self.__SEARCHBOX_SELECTOR)
+          d.find_element(By.CSS_SELECTOR, SEARCHBOX_SELECTOR)
       )
     except TimeoutException:
       logger.error(
@@ -106,7 +92,7 @@ class Querier():
     #: (with website+route instead of image)
     #: --> Wait for several seconds, then refresh page once
     alt_results_elements = self.webdriver.find_elements(
-      By.CSS_SELECTOR, self.__TARGET_RESULT_SELECTOR
+      By.CSS_SELECTOR, TARGET_RESULT_SELECTOR
     )
     if len(alt_results_elements) <= 0:
       logger.info(
@@ -127,7 +113,7 @@ class Querier():
       self._scroll_results()
     
     query_element = self.webdriver.find_element(
-      By.CSS_SELECTOR, self.__RESULTS_BOX_SELECTOR
+      By.CSS_SELECTOR, RESULTS_BOX_SELECTOR
     )
     grabbed_html = query_element.get_attribute('innerHTML')
 
@@ -151,7 +137,7 @@ class Querier():
     try:
       results_count = len(
         self.webdriver.find_elements(
-          By.CSS_SELECTOR, self.__GENERAL_RESULT_SELECTOR
+          By.CSS_SELECTOR, GENERAL_RESULT_SELECTOR
         )
       )
     except NoSuchElementException:
@@ -222,13 +208,13 @@ class Querier():
 
     #: Produces NoSuchElementException on reaching end-of-list.
     #: Used to mark end of query
-    self.webdriver.find_element(By.CSS_SELECTOR, self.__RESULTS_BOTTOM_SELECTOR)
+    self.webdriver.find_element(By.CSS_SELECTOR, RESULTS_BOTTOM_SELECTOR)
 
     #: move_to_element() of out-of-viewport elements produces errors
     #: when using Firefox webdriver. Worked around by executing JS
     #: Case ex. https://stackoverflow.com/a/68676754
     result_elements = self.webdriver.find_elements(
-      By.CSS_SELECTOR, self.__GENERAL_RESULT_SELECTOR
+      By.CSS_SELECTOR, GENERAL_RESULT_SELECTOR
     )
     last_result_element = result_elements[-1]
     self.webdriver.execute_script(

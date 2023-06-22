@@ -4,6 +4,8 @@ from copy import deepcopy
 import requests
 import csv, json, re, logging
 
+from .selectors import *
+
 logging.basicConfig(
   level=logging.INFO,
   format='[%(asctime)s] [%(name)s] %(levelname)s: %(message)s'
@@ -11,20 +13,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class Results:
-  def __init_selectors(self):
-    #: Some class names do contain trailing whitespaces; however,
-    #: class trailing whitespaces in the HTML fed to bs4 are removed
-    self.__RESULT_SELECTOR              = '.Nv2PK'
-    self.__LOCATION_NAME_FIELD_SELECTOR = '.qBF1Pd'
-    self.__LOCATION_TYPE_FIELD_SELECTOR = '.W4Efsd.W4Efsd>span>span'
-    self.__LATITUDE_FIELD_SELECTOR      = 'a[href]'
-    self.__LONGITUDE_FIELD_SELECTOR     = 'a[href]'
-    self.__RATING_FIELD_SELECTOR        = '.MW4etd'
-    self.__REVIEWS_FIELD_SELECTOR       = '.UY7F9'
-    self.__DESCRIPTION_FIELD_SELECTOR   = '.W4Efsd.W4Efsd'
-    self.__LOCATION_LINK_FIELD_SELECTOR = 'a[href]'
-    self.__IMAGE_LINK_FIELD_SELECTOR    = 'img[src]'
-
   def __init__(
     self,
     grabbed_html: str,
@@ -32,7 +20,6 @@ class Results:
     query_language: str,
     query_timestamp: int
   ):
-    self.__init_selectors()
     self._keys = None
     self._query = query
     self._query_language = query_language
@@ -48,7 +35,7 @@ class Results:
 
     #: 1. Parse
     dump_soup = BeautifulSoup(grabbed_html, 'lxml')
-    entries = dump_soup.select(self.__RESULT_SELECTOR)
+    entries = dump_soup.select(RESULT_SELECTOR)
 
     for entry in entries:
       if entry is not None:
@@ -165,7 +152,7 @@ class Results:
     return field
   
   def _process_field_location_name(self, entry: Tag) -> str:
-    field_selection = entry.select_one(self.__LOCATION_NAME_FIELD_SELECTOR)
+    field_selection = entry.select_one(LOCATION_NAME_FIELD_SELECTOR)
     if field_selection is not None:
       field = field_selection.string
     else:
@@ -173,7 +160,7 @@ class Results:
     return field
   
   def _process_field_location_type(self, entry: Tag) -> str:
-    field_selection = entry.select_one(self.__LOCATION_TYPE_FIELD_SELECTOR)
+    field_selection = entry.select_one(LOCATION_TYPE_FIELD_SELECTOR)
     if field_selection is not None:
       field = field_selection.string
     else:
@@ -181,7 +168,7 @@ class Results:
     return field
       
   def _process_field_latitude(self, entry: Tag) -> str:
-    field_selection = entry.select_one(self.__LATITUDE_FIELD_SELECTOR)
+    field_selection = entry.select_one(LATITUDE_FIELD_SELECTOR)
     if field_selection is not None:
       field = field_selection['href']
     else:
@@ -193,7 +180,7 @@ class Results:
     return field
       
   def _process_field_longitude(self, entry: Tag) -> str:
-    field_selection = entry.select_one(self.__LONGITUDE_FIELD_SELECTOR)
+    field_selection = entry.select_one(LONGITUDE_FIELD_SELECTOR)
     if field_selection is not None:
       field = field_selection['href']
     else:
@@ -207,7 +194,7 @@ class Results:
   def _process_field_rating(self, entry: Tag) -> str:
     # Rating is of the form 4.8 or 4,8
     # -> Account for decimal comma
-    field_selection = entry.select_one(self.__RATING_FIELD_SELECTOR)
+    field_selection = entry.select_one(RATING_FIELD_SELECTOR)
     if field_selection is not None:
       field = field_selection.string
       field = field.replace(',', '.')
@@ -218,7 +205,7 @@ class Results:
   def _process_field_reviews(self, entry: Tag) -> str:
     # Review count is of the form (11,111) or (11.111)
     # -> Ignore non-numbers
-    field_selection = entry.select_one(self.__REVIEWS_FIELD_SELECTOR)
+    field_selection = entry.select_one(REVIEWS_FIELD_SELECTOR)
     if field_selection is not None:
       field = field_selection.string
       field = re.sub('[^0-9]', '', field)
@@ -230,7 +217,7 @@ class Results:
     #: Description is of the form [" ", " ", " ", " "]
     #: -> Join same-line blocks with whitespace
     #: -> Join different lines with newline
-    field_selections = entry.select(self.__DESCRIPTION_FIELD_SELECTOR)
+    field_selections = entry.select(DESCRIPTION_FIELD_SELECTOR)
     field_lines = []
     for index, selection in enumerate(field_selections):
       #: Skip the first field, as it is already processed as location type 
@@ -243,7 +230,7 @@ class Results:
   def _process_field_location_link(self, entry: Tag) -> str:
     #: The section after '?' grabbed from the fields can be dropped
     #: However, keep the host query_language query (from caller)
-    field_selection = entry.select_one(self.__LOCATION_LINK_FIELD_SELECTOR)
+    field_selection = entry.select_one(LOCATION_LINK_FIELD_SELECTOR)
     if field_selection is not None:
       field = field_selection['href'].rsplit('?')[0] + f'?hl={quote_plus(self.query_language)}'
     else:
@@ -252,7 +239,7 @@ class Results:
   
   def _process_field_image_link(self, entry: Tag) -> str:
     # Stripping the section after '=' yields the original size img
-    field_selection = entry.select_one(self.__IMAGE_LINK_FIELD_SELECTOR)
+    field_selection = entry.select_one(IMAGE_LINK_FIELD_SELECTOR)
     if field_selection is not None:
       field = field_selection['src'].rsplit('=')[0]
     else:
