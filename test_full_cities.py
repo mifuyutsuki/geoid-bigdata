@@ -51,11 +51,11 @@ def initialize_driver(*, start_headless=True):
 
 def main():
   keyword = 'pariwisata'
-  input_json_file = r'input_data\sample_cities_data.json'
+  input_json_file = r'input_data\cities_data_1of3.json'
 
   querier = BigQuerier(
     input_json_file,
-    scroll_wait_seconds=2.0
+    scroll_wait_seconds=1.1
   )
   
   logger.info('Initializing webdriver')
