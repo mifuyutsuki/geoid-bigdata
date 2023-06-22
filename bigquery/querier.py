@@ -23,13 +23,14 @@ class Querier():
     #: class trailing whitespaces in the HTML fed to bs4 are removed
 
     #: Results selectors
-    self.__RESULT_SELECTOR = 'div[class="Nv2PK THOPZb CpccDe "]'
-    self.__RESULTS_BOX_SELECTOR = 'div[class="m6QErb DxyBCb kA9KIf dS8AEf ecceSd "]'
-    self.__RESULTS_BOTTOM_SELECTOR = 'div[class="lXJj5c Hk4XGb "]'
-    # self.__RESULTS_END_SELECTOR = 'div[class="m6QErb tLjsW eKbjU "]'
+    self.__TARGET_RESULT_SELECTOR = 'div[class="Nv2PK THOPZb CpccDe "]'
+    self.__GENERAL_RESULT_SELECTOR = '.Nv2PK'
+    self.__RESULTS_BOX_SELECTOR = '.DxyBCb'
+    self.__RESULTS_BOTTOM_SELECTOR = '.lXJj5c'
+    # self.__RESULTS_END_SELECTOR = '.eKbjU'
 
-    #: Location selectors (unused, kept for reference)
-    # self.__LOCATION_INFO_SELECTOR = 'div[class="MngOvd fontBodyMedium zWArOe "]'
+    #: Other selectors
+    self.__SEARCHBOX_SELECTOR = '#searchbox'
 
   def __init__(self,
     webdriver: WebDriver,
@@ -80,31 +81,48 @@ class Querier():
       self.webdriver.find_element(
         By.CSS_SELECTOR, self.__RESULTS_BOX_SELECTOR
       )
-      WebDriverWait(
-        self.webdriver, self.loading_timeout_seconds
-      ) \
-      .until(
-        lambda d:
-          d.find_element(By.CSS_SELECTOR, self.__RESULTS_BOTTOM_SELECTOR)
-      )
     except NoSuchElementException:
       logger.error(
         'Could not find results box; '
         'query may have outputted a location instead of search results'
       )
       raise
-    except Exception as e:
-      logger.exception(e)
+
+    try:
+      WebDriverWait(
+        self.webdriver, self.loading_timeout_seconds
+      ) \
+      .until(
+        lambda d:
+          d.find_element(By.CSS_SELECTOR, self.__SEARCHBOX_SELECTOR)
+      )
+    except TimeoutException:
+      logger.error(
+        'Failed to sufficiently load page (timed out)'
+      )
       raise
+
+    #: Sometimes the site gives an alternate results view
+    #: (with website+route instead of image)
+    #: --> Wait for several seconds, then refresh page once
+    alt_results_elements = self.webdriver.find_elements(
+      By.CSS_SELECTOR, self.__TARGET_RESULT_SELECTOR
+    )
+    if len(alt_results_elements) <= 0:
+      logger.info(
+        'Refreshing page to obtain search results of the desired type'
+      )
+      sleep(4)
+      self.webdriver.refresh()
     
     #: Query depth of 1 --> only grab the first "page", no scroll needed
     if self._query_depth != 1:
-      if self._query_depth==self.INFINITE_SCROLL:
-        log_depth = 'infinite'
-      else:
-        log_depth = str(self._query_depth)
-      logger.debug(
-        f'Starting scrolling, depth: {log_depth}'
+      # if self._query_depth==self.INFINITE_SCROLL:
+      #   log_depth = 'infinite'
+      # else:
+      #   log_depth = str(self._query_depth)
+      logger.info(
+        f'Scrolling query: {self._query}'
       )
       self._scroll_results()
     
@@ -129,19 +147,23 @@ class Querier():
     )
 
   def _count_results(self):
+    results_count = 0
     try:
-      results = self.webdriver.find_elements(
-        By.CSS_SELECTOR, self.__RESULT_SELECTOR
+      results_count = len(
+        self.webdriver.find_elements(
+          By.CSS_SELECTOR, self.__GENERAL_RESULT_SELECTOR
+        )
       )
     except NoSuchElementException:
-      return 0
+      results_count = 0
     
-    results_count = len(results)
     return results_count
 
   def _scroll_results(self):
     scrolls_remaining = self._query_depth - 1
     retries_remaining = self.scroll_retries
+    scroll_status = self.__SCROLL_FAILURE
+    results_count = 0
 
     while (
       (
@@ -206,7 +228,7 @@ class Querier():
     #: when using Firefox webdriver. Worked around by executing JS
     #: Case ex. https://stackoverflow.com/a/68676754
     result_elements = self.webdriver.find_elements(
-      By.CSS_SELECTOR, self.__RESULT_SELECTOR
+      By.CSS_SELECTOR, self.__GENERAL_RESULT_SELECTOR
     )
     last_result_element = result_elements[-1]
     self.webdriver.execute_script(

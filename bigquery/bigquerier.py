@@ -206,7 +206,7 @@ class BigQuerier:
       
       filtered_query_results = []
       for query_result in query_results:
-        query_city = query_result['kab_kota']
+        query_city = query_result['nama_kabupaten_kota']
         if (
           target_city.strip().lower() == query_city.strip().lower()
         ):
@@ -245,7 +245,7 @@ class BigQuerier:
         result_object = dict()
         for key in query_result.keys():
           #: Exclude keys
-          if key.lower() in ('provinsi', 'kab_kota'):
+          if key.lower() in ('nama_provinsi', 'nama_kabupaten_kota'):
             continue
           result_object[key] = query_result[key]
         flattened_object = head_object.copy()

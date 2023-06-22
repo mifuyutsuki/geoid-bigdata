@@ -14,14 +14,14 @@ class Results:
   def __init_selectors(self):
     #: Some class names do contain trailing whitespaces; however,
     #: class trailing whitespaces in the HTML fed to bs4 are removed
-    self.__RESULT_SELECTOR              = 'div[class="Nv2PK THOPZb CpccDe"]'
-    self.__LOCATION_NAME_FIELD_SELECTOR = 'div[class="qBF1Pd fontHeadlineSmall"]'
-    self.__LOCATION_TYPE_FIELD_SELECTOR = 'div[class="W4Efsd"] > div[class="W4Efsd"] > span > span'
+    self.__RESULT_SELECTOR              = '.Nv2PK'
+    self.__LOCATION_NAME_FIELD_SELECTOR = '.qBF1Pd'
+    self.__LOCATION_TYPE_FIELD_SELECTOR = '.W4Efsd.W4Efsd>span>span'
     self.__LATITUDE_FIELD_SELECTOR      = 'a[href]'
     self.__LONGITUDE_FIELD_SELECTOR     = 'a[href]'
-    self.__RATING_FIELD_SELECTOR        = 'span[class="MW4etd"]'
-    self.__REVIEWS_FIELD_SELECTOR       = 'span[class="UY7F9"]'
-    self.__DESCRIPTION_FIELD_SELECTOR   = 'div[class="W4Efsd"] > div[class="W4Efsd"]'
+    self.__RATING_FIELD_SELECTOR        = '.MW4etd'
+    self.__REVIEWS_FIELD_SELECTOR       = '.UY7F9'
+    self.__DESCRIPTION_FIELD_SELECTOR   = '.W4Efsd.W4Efsd'
     self.__LOCATION_LINK_FIELD_SELECTOR = 'a[href]'
     self.__IMAGE_LINK_FIELD_SELECTOR    = 'img[src]'
 
@@ -63,8 +63,13 @@ class Results:
     for result in results:
       try:
         result = self._process_fields_municipality(result)
-      except (ValueError, KeyError, requests.HTTPError) as e:
+      except (ValueError, TimeoutError, requests.HTTPError) as e:
+        #: These errors 
         logger.error(str(e))
+        process_error_count = process_error_count + 1
+        continue
+      except Exception as e:
+        logger.exception(e)
         process_error_count = process_error_count + 1
         continue
     
@@ -86,19 +91,19 @@ class Results:
   
   def _process_entry(self, entry: Tag) -> dict:
     result_entry = dict()
-    result_entry['location_name'] = self._process_field_location_name(entry)
-    result_entry['location_type'] = self._process_field_location_type(entry)
-    result_entry['latitude']      = self._process_field_latitude(entry) 
-    result_entry['longitude']     = self._process_field_longitude(entry)
+    result_entry['location_name']  = self._process_field_location_name(entry)
+    result_entry['location_type']  = self._process_field_location_type(entry)
+    result_entry['latitude']       = self._process_field_latitude(entry) 
+    result_entry['longitude']      = self._process_field_longitude(entry)
 
     #: These fields are filled in another process function
-    result_entry['provinsi']      = ''
-    result_entry['kab_kota']      = ''
-    result_entry['id_kecamatan']  = ''
-    result_entry['kecamatan']     = ''
-    result_entry['id_kel_desa']   = ''
-    result_entry['kel_desa']      = ''
-    result_entry['kode_pos']      = ''
+    result_entry['nama_provinsi']       = ''
+    result_entry['nama_kabupaten_kota'] = ''
+    result_entry['id_kecamatan']        = ''
+    result_entry['nama_kecamatan']      = ''
+    result_entry['id_kelurahan_desa']   = ''
+    result_entry['nama_kelurahan_desa'] = ''
+    result_entry['kode_pos']            = ''
 
     result_entry['rating']        = self._process_field_rating(entry)
     result_entry['reviews']       = self._process_field_reviews(entry)
@@ -107,14 +112,6 @@ class Results:
     result_entry['image_link']    = self._process_field_image_link(entry)
     self._keys = result_entry.keys()
     return result_entry
-
-  def _get_municipality(self, latitude, longitude):
-    request = requests.get(
-      f'https://kodeposku.com/api/nearest?lat={str(latitude)}&lon={str(longitude)}',
-      timeout=(3.5, 5.0)
-    )
-    request.raise_for_status()
-    return request.json()
   
   def _process_fields_municipality(self, result_entry):
     if (
@@ -127,21 +124,29 @@ class Results:
         result_entry['latitude'], result_entry['longitude']
     )
 
-    result_entry['provinsi']     = \
+    result_entry['nama_provinsi']     = \
       str(municipality_fields['province'])
-    result_entry['kab_kota']     = \
+    result_entry['nama_kabupaten_kota']     = \
       str(municipality_fields['city'])
     result_entry['id_kecamatan'] = \
       self._process_field_id_district(municipality_fields['code'])
-    result_entry['kecamatan']    = \
+    result_entry['nama_kecamatan']    = \
       str(municipality_fields['district'])
-    result_entry['id_kel_desa']  = \
+    result_entry['id_kelurahan_desa']  = \
       self._process_field_id_village(municipality_fields['code'])
-    result_entry['kel_desa']     = \
+    result_entry['nama_kelurahan_desa']     = \
       str(municipality_fields['village'])
     result_entry['kode_pos']     = \
       str(municipality_fields['postal'])
     return result_entry
+
+  def _get_municipality(self, latitude, longitude):
+    request = requests.get(
+      f'https://kodeposku.com/api/nearest?lat={str(latitude)}&lon={str(longitude)}',
+      timeout=(3.5, 5.0)
+    )
+    request.raise_for_status()
+    return request.json()
 
   def _process_field_id_district(self, code) -> str:
     subcodes = re.findall(r'[0-9]+', code)
