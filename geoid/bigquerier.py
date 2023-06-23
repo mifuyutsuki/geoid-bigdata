@@ -1,9 +1,10 @@
 from selenium.common.exceptions import *
 from selenium.webdriver.remote.webdriver import WebDriver
-from copy import deepcopy
-import json, logging
+import json, logging, os
 
-from . import Querier
+from .querier import Querier
+from .constants import keys
+from . import processing
 
 logging.basicConfig(
   level=logging.INFO,
@@ -20,19 +21,20 @@ class BigQuerierConfig:
 class BigQuerier:
   def __init__(
     self,
-    source_json_file: str,
+    source_filename: str,
+    output_filename: str,
     *,
     use_config: BigQuerierConfig = None
   ):
     self._output_data = []
-    with open(source_json_file, 'r', encoding='UTF-8') as json_file:
+    with open(source_filename, 'r', encoding='UTF-8') as json_file:
       self._input_data = json.load(json_file)
     
     if type(self._input_data) is not list:
-      raise ValueError(f'Query file "{source_json_file}" must be an array of objects')
+      raise ValueError(f'Query file "{source_filename}" must be an array of objects')
 
     logger.info(
-      f'Imported queries file "{source_json_file}"'
+      f'Imported queries file "{source_filename}"'
     )
 
     self.queries_count = len(self._input_data)
@@ -50,11 +52,30 @@ class BigQuerier:
     self.webdriver = None
     self.querier   = None
     
-    self.source_file = source_json_file
+    self.source_filename = source_filename
+    self.output_filename = output_filename
+    self.autosave_filename = output_filename + '.autosave'
+
     if use_config is not None:
       self.config = use_config
     else:
       self.config = BigQuerierConfig()
+
+  def _detect_missing_query_terms(self):
+    missing_count = 0
+    for input_object in self._input_data:
+      try:
+        input_object[keys.QUERY_TERM]
+      except KeyError:
+        missing_count = missing_count + 1
+        continue
+    
+    self.missing_count = missing_count
+    if self.missing_count > 0:
+      logger.warning(
+        f'Found {str(self.missing_count)} entry(s) with missing query term, '
+        f'which will be skipped'
+      )
 
   def begin(
     self,
@@ -62,13 +83,16 @@ class BigQuerier:
     keyword: str,
     *,
     query_depth=1,
-    query_language='id'
+    query_lang='id',
+    autosave_every=1
   ):
     logger.info(
-      f'Starting big query of "{self.source_file}", keyword: "{keyword}"'
+      f'Starting big query of "{self.source_filename}", keyword: "{keyword}"'
     )
 
-    self._preprocess_query(keyword)
+    queries_data = processing.preproc_queries(
+      keyword, self._input_data
+    )
 
     self.webdriver = webdriver
     self.querier = Querier(
@@ -78,16 +102,16 @@ class BigQuerier:
       scroll_retries=self.config.scroll_retries
     )
 
-    for index, input_object in enumerate(self.input_data):
+    for index, query_object in enumerate(queries_data):
       try:
-        query = input_object['query']
+        query = query_object[keys.QUERY]
       except KeyError:
-        self.missing_data.append(input_object)
+        self.missing_data.append(query_object)
         logger.info(
           f'({str(index+1)}/{str(self.queries_count)}): Skipping due to missing query term'
         )
         logger.debug(
-          f'Missing query-term object:\n{str(input_object)}'
+          f'Missing query-term object:\n{str(query_object)}'
         )
         continue
       
@@ -95,46 +119,34 @@ class BigQuerier:
         f'({str(index+1)}/{str(self.queries_count)}): Querying "{query}"'
       )
 
-      output_object = input_object.copy()
+      output_object = query_object.copy()
       try:
         results = self._begin_one(
           query,
           query_depth=query_depth,
-          query_language=query_language
+          query_lang=query_lang
         )
-
-      except NoSuchElementException:
-        # This is typically called by the missing results-box
-        self.errored_count = self.errored_count + 1
-        self.errored_data.append(input_object)
-
-        logger.error(
-          f'Could not process entry #{str(index+1)}'
-        )
-        logger.debug(
-          f'Errored object:\n{str(input_object)}'
-        )
-        continue
 
       except Exception as e:
         self.errored_count = self.errored_count + 1
-        self.errored_data.append(input_object)
+        self.errored_data.append(query_object)
 
-        logger.exception(e)
+        logger.error(str(e))
         logger.error(
           f'Could not process entry #{str(index+1)}'
         )
         logger.debug(
-          f'Errored object:\n{str(input_object)}'
+          f'Errored object:\n{str(query_object)}'
         )
         continue
 
       output_object.update(results)
       self._output_data.append(output_object)
+      self.outputs_count = len(self._output_data)
+      self.autosave(autosave_every)
     
-    self.outputs_count = len(self._output_data)
     logger.info(
-      f'Finished big query of "{self.source_file}"'
+      f'Finished big query of "{self.source_filename}"'
     )
     logger.info(
       f'{str(self.queries_count)} input entries, '
@@ -156,143 +168,70 @@ class BigQuerier:
           [str(errored_object) for errored_object in self.errored_data]
         )
       )
-  
-  def _detect_missing_query_terms(self):
-    missing_count = 0
-    for input_object in self._input_data:
-      try:
-        input_object['query_term']
-      except KeyError:
-        missing_count = missing_count + 1
-        continue
-    
-    self.missing_count = missing_count
-    if self.missing_count > 0:
-      logger.warning(
-        f'Found {str(self.missing_count)} entry(s) with missing query term, '
-        f'which will be skipped'
-      )
-  
-  def _preprocess_query(
-    self,
-    keyword: str
-  ):
-    for input_object in self._input_data:
-      try:
-        input_object['query_term']
-      except KeyError:
-        continue
-
-      input_object['query'] = f"{keyword} {input_object['query_term']}"
-  
-  def postprocess(self):
-    unprocessed_data  = self.output_data.copy()
-    filtered_data     = self._postprocess_filter(unprocessed_data)
-    flattened_data    = self._postprocess_flatten(filtered_data)
-    self._output_data = flattened_data
-
-    objects_count_after = len(self.output_data)
-    logger.info(
-      f'Postprocessing - {str(objects_count_after)} entry(s)'
-    )
-  
-  def _postprocess_filter(
-    self,
-    data: list[dict]
-  ) -> list[dict]:
-    filtered_data = data
-    filtered_count = 0
-    for query_object in filtered_data:
-      try:
-        target_city   = query_object['nama_kabupaten_kota']
-        query_results = query_object['query_results']
-      except KeyError:
-        continue
-      
-      filtered_query_results = []
-      for query_result in query_results:
-        query_city = query_result['nama_kabupaten_kota']
-        if (
-          target_city.strip().lower() == query_city.strip().lower()
-        ):
-          filtered_query_results.append(query_result.copy())
-        else:
-          filtered_count = filtered_count + 1
-        
-      query_object['query_results'] = filtered_query_results
-      query_object['query_results_count'] = len(filtered_query_results)
-
-    logger.info(
-      f'Postprocessing - removed {str(filtered_count)} result(s) '
-      f'with mismatched location'
-    )
-    return filtered_data
-  
-  def _postprocess_flatten(
-    self,
-    data: list[dict]
-  ) -> list[dict]:
-    flattened_data = []
-    for query_object in data:
-      try:
-        query_results = query_object['query_results']
-      except KeyError:
-        continue
-      
-      head_object = dict()
-      for key in query_object.keys():
-        #: Exclude keys
-        if key.lower() in ('query_results', 'query_results_count'):
-          continue
-        head_object[key] = query_object[key]
-
-      for query_result in query_results:
-        result_object = dict()
-        for key in query_result.keys():
-          #: Exclude keys
-          if key.lower() in ('nama_provinsi', 'nama_kabupaten_kota'):
-            continue
-          result_object[key] = query_result[key]
-        flattened_object = head_object.copy()
-        flattened_object.update(result_object)
-        flattened_data.append(flattened_object)
-    
-    logger.info(
-      f'Postprocessing - flattened query results'
-    )
-    return flattened_data
-
-  def export_json(
-    self,
-    filename: str,
-    indent=1
-  ):
-    if len(filename) <= 0:
-      raise ValueError('Filename must not be empty')
-
-    with open(filename, 'w', encoding='UTF-8') as json_file:
-      json.dump(self.output_data, json_file, indent=indent)
-    
-    logger.info(
-      f'Exported big query to JSON file "{filename}"'
-    )
 
   def _begin_one(self,
     query: str,
     *,
     query_depth=1,
-    query_language='id'
+    query_lang='id'
   ):
-    self.querier.begin(query, query_depth=query_depth, query_language=query_language)
+    self.querier.begin(query, query_depth=query_depth, query_lang=query_lang)
 
     result = self.querier.grab_results()
     return result.report()
   
-  def input_data_copy(self):
-    return deepcopy(self._input_data)
+  def postprocess(self):
+    self._output_data = processing.postproc_queries(self._output_data)
+
+  def autosave(
+    self,
+    every: int
+  ):    
+    if self.outputs_count % every == 0:
+      try:
+        with open(self.autosave_filename, 'w', encoding='UTF-8') as json_file:
+          json.dump(self.output_data, json_file, indent=1)
+      except OSError as e:
+        logger.error(str(e))
+        logger.error(
+          f'Unable to autosave to "{self.autosave_filename}"'
+        )
+      else:
+        logger.info(
+          f'Autosaved to "{self.autosave_filename}"'
+        )
   
-  def output_data_copy(self):
-    return deepcopy(self._output_data)
+  def export_json(
+    self,
+    filename=None,
+    indent=1
+  ):
+    if filename is None:
+      filename = self.output_filename
+
+    try:
+      with open(filename, 'w', encoding='UTF-8') as json_file:
+        json.dump(self.output_data, json_file, indent=indent)
+    except OSError as e:
+      logger.error(str(e))
+      logger.error(
+        f'Unable to export to JSON file {filename}'
+      )
+      return
+    
+    logger.info(
+      f'Exported data to JSON file "{filename}"'
+    )
+
+    try:
+      os.remove(self.autosave_filename)
+    except OSError:
+      pass
+    else:
+      logger.info(
+        f'Removed autosave "{self.autosave_filename}"'
+      )
+
 
   @property
   def input_data(self):

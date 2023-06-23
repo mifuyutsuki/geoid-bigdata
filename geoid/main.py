@@ -2,20 +2,6 @@ from selenium import webdriver
 from . import BigQuerier, BigQuerierConfig, LOG_CONFIG
 import logging, logging.config, time
 
-def _initialize_driver_firefox(*, show_client=False):
-  options = webdriver.FirefoxOptions()
-  if not show_client:
-    options.add_argument('-headless')
-  driver = webdriver.Firefox(options=options)
-  return driver
-
-def _initialize_driver_chrome(*, show_client=False):
-  options = webdriver.ChromeOptions()
-  if not show_client:
-    options.add_argument('-headless')
-  driver = webdriver.Chrome(options=options)
-  return driver
-
 def begin(
   keyword: str,
   source_file: str,
@@ -29,16 +15,21 @@ def begin(
   use_timestamp=True
 ):
   logging.config.dictConfig(LOG_CONFIG)
-  logger = logging.getLogger('interface')
+  logger = logging.getLogger('geoid')
 
   querier_config = BigQuerierConfig()
   querier_config.scroll_wait_seconds = 1.1
 
+  if use_timestamp:
+    timestamp = time.strftime('%Y%m%d_%H%M%S')
+    output_file = output_file.format(timestamp=timestamp)
+
   querier = BigQuerier(
     source_file,
+    output_file,
     use_config=querier_config
   )
-  
+
   logger.info('Initializing webdriver')
   if web_client == 'firefox':
     driver = _initialize_driver_firefox(show_client=show_client)
@@ -63,9 +54,18 @@ def begin(
   if use_postprocess:
     querier.postprocess()
 
-  if use_timestamp:
-    timestamp = time.strftime('%Y%m%d_%H%M%S')
-    final_output_file = output_file.format(timestamp=timestamp)
-  else:
-    final_output_file = output_file
-  querier.export_json(final_output_file, indent=indent)
+  querier.export_json(indent=indent)
+
+def _initialize_driver_firefox(*, show_client=False):
+  options = webdriver.FirefoxOptions()
+  if not show_client:
+    options.add_argument('-headless')
+  driver = webdriver.Firefox(options=options)
+  return driver
+
+def _initialize_driver_chrome(*, show_client=False):
+  options = webdriver.ChromeOptions()
+  if not show_client:
+    options.add_argument('-headless')
+  driver = webdriver.Chrome(options=options)
+  return driver

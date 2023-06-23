@@ -6,8 +6,8 @@ from urllib.parse import quote_plus
 from time import time, sleep
 import logging
 
-from . import Results
-from .selectors import *
+from .results import Results
+from .constants import cselectors, links
 
 logging.basicConfig(
   level=logging.INFO,
@@ -28,7 +28,7 @@ class Querier():
   ):
     self._query           = None
     self._query_depth     = None
-    self._query_language  = None
+    self._query_lang      = None
     self._query_timestamp = None
 
     self.webdriver               = webdriver
@@ -39,7 +39,7 @@ class Querier():
   def begin(self,
     query: str, /,
     query_depth=1,
-    query_language='id'
+    query_lang='id'
   ):
     if len(query) <= 0:
       raise ValueError('Query key must not be empty')
@@ -48,15 +48,19 @@ class Querier():
     
     self._query = query
     self._query_depth = query_depth
-    self._query_language = query_language
+    self._query_lang = query_lang
     self._query_timestamp = int(time())
 
     logger.debug(
-      f'Querying: "{query}"' + \
-      f', language: {query_language}'
+      f'Querying: "{query}"'
+      f', depth: {str(query_depth)}'
+      f', language: {query_lang}'
     )
     self.webdriver.get(
-      f'https://www.google.com/maps?q={quote_plus(query)}&hl={quote_plus(query_language)}'
+      links.GMAPS_QUERY_TARGET.format(
+        query=quote_plus(query),
+        query_lang=quote_plus(query_lang)
+      )
     )
   
   def grab_results(self):
@@ -65,7 +69,7 @@ class Querier():
     )
     try:
       self.webdriver.find_element(
-        By.CSS_SELECTOR, RESULTS_BOX_SELECTOR
+        By.CSS_SELECTOR, cselectors.RESULTS_BOX
       )
     except NoSuchElementException:
       logger.error(
@@ -80,7 +84,7 @@ class Querier():
       ) \
       .until(
         lambda d:
-          d.find_element(By.CSS_SELECTOR, SEARCHBOX_SELECTOR)
+          d.find_element(By.CSS_SELECTOR, cselectors.SEARCHBOX)
       )
     except TimeoutException:
       logger.error(
@@ -92,7 +96,7 @@ class Querier():
     #: (with website+route instead of image)
     #: --> Wait for several seconds, then refresh page once
     alt_results_elements = self.webdriver.find_elements(
-      By.CSS_SELECTOR, TARGET_RESULT_SELECTOR
+      By.CSS_SELECTOR, cselectors.TARGET_RESULT
     )
     if len(alt_results_elements) <= 0:
       logger.info(
@@ -113,7 +117,7 @@ class Querier():
       self._scroll_results()
     
     query_element = self.webdriver.find_element(
-      By.CSS_SELECTOR, RESULTS_BOX_SELECTOR
+      By.CSS_SELECTOR, cselectors.RESULTS_BOX
     )
     grabbed_html = query_element.get_attribute('innerHTML')
 
@@ -128,7 +132,7 @@ class Querier():
     return Results(
       grabbed_html,
       self._query,
-      self._query_language,
+      self._query_lang,
       self._query_timestamp
     )
 
@@ -137,7 +141,7 @@ class Querier():
     try:
       results_count = len(
         self.webdriver.find_elements(
-          By.CSS_SELECTOR, GENERAL_RESULT_SELECTOR
+          By.CSS_SELECTOR, cselectors.GENERAL_RESULT
         )
       )
     except NoSuchElementException:
@@ -208,13 +212,13 @@ class Querier():
 
     #: Produces NoSuchElementException on reaching end-of-list.
     #: Used to mark end of query
-    self.webdriver.find_element(By.CSS_SELECTOR, RESULTS_BOTTOM_SELECTOR)
+    self.webdriver.find_element(By.CSS_SELECTOR, cselectors.RESULTS_BOTTOM)
 
     #: move_to_element() of out-of-viewport elements produces errors
     #: when using Firefox webdriver. Worked around by executing JS
     #: Case ex. https://stackoverflow.com/a/68676754
     result_elements = self.webdriver.find_elements(
-      By.CSS_SELECTOR, GENERAL_RESULT_SELECTOR
+      By.CSS_SELECTOR, cselectors.GENERAL_RESULT
     )
     last_result_element = result_elements[-1]
     self.webdriver.execute_script(
