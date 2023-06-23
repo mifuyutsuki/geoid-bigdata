@@ -1,5 +1,5 @@
 from selenium import webdriver
-from bigquery.bigquerier import BigQuerier
+from geoid import BigQuerier
 import logging, logging.config, time
 
 log_format = '[%(asctime)s] [%(name)s] %(levelname)s: %(message)s'
