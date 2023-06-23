@@ -6,14 +6,14 @@ from urllib.parse import quote_plus
 from time import time, sleep
 import logging
 
-from .results import Results
+from . import Results
 from .selectors import *
 
 logging.basicConfig(
   level=logging.INFO,
   format='[%(asctime)s] [%(name)s] %(levelname)s: %(message)s'
 )
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('Querier')
 
 class Querier():
   __SCROLL_SUCCESS = 0
