@@ -10,7 +10,7 @@ logging.basicConfig(
   level=logging.INFO,
   format='[%(asctime)s] [%(name)s] %(levelname)s: %(message)s'
 )
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('Results')
 
 class Results:
   def __init__(
@@ -50,13 +50,8 @@ class Results:
     for result in results:
       try:
         result = self._process_fields_municipality(result)
-      except (ValueError, TimeoutError, requests.HTTPError) as e:
-        #: These errors 
-        logger.error(str(e))
-        process_error_count = process_error_count + 1
-        continue
       except Exception as e:
-        logger.exception(e)
+        logger.error(str(e))
         process_error_count = process_error_count + 1
         continue
     
@@ -326,4 +321,3 @@ class Results:
   @property
   def results_count(self) -> int:
     return self._results_count
-  
