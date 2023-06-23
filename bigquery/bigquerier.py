@@ -3,22 +3,26 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from copy import deepcopy
 import json, logging
 
-from .querier import Querier
+from . import Querier
 
 logging.basicConfig(
   level=logging.INFO,
   format='[%(asctime)s] [%(name)s] %(levelname)s: %(message)s'
 )
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('BigQuerier')
+
+class BigQuerierConfig:
+  def __init__(self):
+    self.loading_timeout_seconds = 15.0
+    self.scroll_wait_seconds     = 2.5
+    self.scroll_retries          = 5
 
 class BigQuerier:
   def __init__(
     self,
     source_json_file: str,
     *,
-    loading_timeout_seconds=15.0,
-    scroll_wait_seconds=2.5,
-    scroll_retries=5
+    use_config: BigQuerierConfig = None
   ):
     self._output_data = []
     with open(source_json_file, 'r', encoding='UTF-8') as json_file:
@@ -46,10 +50,11 @@ class BigQuerier:
     self.webdriver = None
     self.querier   = None
     
-    self.source_file             = source_json_file
-    self.loading_timeout_seconds = loading_timeout_seconds
-    self.scroll_wait_seconds     = scroll_wait_seconds
-    self.scroll_retries          = scroll_retries
+    self.source_file = source_json_file
+    if use_config is not None:
+      self.config = use_config
+    else:
+      self.config = BigQuerierConfig()
 
   def begin(
     self,
@@ -68,9 +73,9 @@ class BigQuerier:
     self.webdriver = webdriver
     self.querier = Querier(
       self.webdriver,
-      loading_timeout_seconds=self.loading_timeout_seconds,
-      scroll_wait_seconds=self.scroll_wait_seconds,
-      scroll_retries=self.scroll_retries
+      loading_timeout_seconds=self.config.loading_timeout_seconds,
+      scroll_wait_seconds=self.config.scroll_wait_seconds,
+      scroll_retries=self.config.scroll_retries
     )
 
     for index, input_object in enumerate(self.input_data):
