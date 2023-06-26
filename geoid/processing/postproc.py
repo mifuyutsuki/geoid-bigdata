@@ -13,14 +13,15 @@ logger = logging.getLogger('Postprocessing')
 def postproc_queries(
   data: list[dict]
 ) -> list[dict]:
-  unprocessed_data    = deepcopy(data)
+  processed_data       = deepcopy(data)
 
-  filtered_data       = filter_by_city(unprocessed_data)
-  flattened_data      = convert_flat(filtered_data)
-  ascii_data          = convert_ascii(flattened_data)
+  processed_data       = filter_by_city(processed_data)
+  processed_data       = convert_flat(processed_data)
+  processed_data       = convert_ascii(processed_data)
+  processed_data       = replace_characters(processed_data, '\n', '; ')
 
-  output_data         = ascii_data
-  objects_count_after = len(output_data)
+  output_data          = processed_data
+  objects_count_after  = len(output_data)
 
   logger.info(
     f'Outputted {str(objects_count_after)} entry(s)'
@@ -79,7 +80,7 @@ def convert_flat(data: list[dict]) -> list[dict]:
       flattened_object.update(query_result)
       flattened_data.append(flattened_object)
   
-  logger.info(
+  logger.debug(
     f'Flattened query results'
   )
   return flattened_data
@@ -91,7 +92,23 @@ def convert_ascii(data: list[dict]) -> list[dict]:
       if type(value) is str:
         value = unidecode(value, errors='replace', replace_str='?')
   
-  logger.info(
+  logger.debug(
     f'Converted all string fields to ASCII characters'
   )
   return ascii_data
+
+def replace_characters(
+  data: list[dict],
+  char_from: str,
+  char_to: str
+) -> list[dict]:
+  replaced_data = data
+  for single_data in replaced_data:
+    for value in single_data.values():
+      if type(value) is str:
+        value = value.replace(char_from, char_to)
+  
+  logger.debug(
+    f'Converted all instances of "{char_from}" to "{char_to}"'
+  )
+  return replaced_data
