@@ -25,7 +25,7 @@ def proc_entry(entry: Tag, query_lang='id') -> dict:
     result_entry[keys.REVIEWS]       = fields.get_reviews(entry)
     result_entry[keys.DESCRIPTION]   = fields.get_description(entry)
     result_entry[keys.LOCATION_LINK] = fields.get_location_link(entry, query_lang)
-    result_entry[keys.IMAGE_LINK]    = fields.get_image_link(entry)
+    # result_entry[keys.IMAGE_LINK]    = fields.get_image_link(entry)
     return result_entry
   
 def proc_municipality(result_entry):
