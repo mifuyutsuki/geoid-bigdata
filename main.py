@@ -65,9 +65,7 @@ if __name__ == '__main__':
   args = parser.parse_args()
 
   if args.timestamp:
-    try:
-      args.output.format(timestamp='')
-    except KeyError:
+    if "{timestamp}" not in args.output:
       print(
         'Specify timestamp location in the output filename using {timestamp} '
         'to use the timestamp option'

@@ -22,7 +22,7 @@ def begin(
 
   if use_timestamp:
     timestamp = time.strftime('%Y%m%d_%H%M%S')
-    output_file = output_file.format(timestamp=timestamp)
+    output_file = output_file.replace("{timestamp}", timestamp)
 
   querier = BigQuerier(
     source_file,
