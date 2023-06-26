@@ -87,10 +87,14 @@ def convert_flat(data: list[dict]) -> list[dict]:
 
 def convert_ascii(data: list[dict]) -> list[dict]:
   ascii_data = data
-  for query_result in ascii_data:
-    for value in query_result.values():
-      if type(value) is str:
-        value = unidecode(value, errors='replace', replace_str='?')
+  for single_data in ascii_data:
+    for key in single_data.keys():
+      if type(single_data[key]) is str:
+        single_data[key] = unidecode(
+          single_data[key],
+          errors='replace',
+          replace_str='?'
+        )
   
   logger.debug(
     f'Converted all string fields to ASCII characters'
@@ -104,9 +108,9 @@ def replace_characters(
 ) -> list[dict]:
   replaced_data = data
   for single_data in replaced_data:
-    for value in single_data.values():
-      if type(value) is str:
-        value = value.replace(char_from, char_to)
+    for key in single_data.keys():
+      if type(single_data[key]) is str:
+        single_data[key] = single_data[key].replace(char_from, char_to)
   
   logger.debug(
     f'Converted all instances of "{char_from}" to "{char_to}"'

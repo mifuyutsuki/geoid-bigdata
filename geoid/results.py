@@ -50,7 +50,7 @@ class Results:
     grabbed_html: str
   ):
     logger.info(
-      f'Processing results of query: "{self._query}"'
+      f'Processing results of query: "{self.metadata.query}"'
     )
     results = []
     
@@ -93,6 +93,8 @@ class Results:
     logger.info(
       f'Processed results of query: "{self.metadata.query}"'
     )
+
+    return self
     
   # def export_csv(
   #   self,
@@ -158,7 +160,7 @@ class Results:
     }
 
     logger.debug(
-      f'Generated query report of "{self.query}"'
+      f'Generated query report of "{self.metadata.query}"'
     )
     return deepcopy(report_dump)
 
