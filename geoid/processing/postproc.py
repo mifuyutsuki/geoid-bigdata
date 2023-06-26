@@ -1,5 +1,6 @@
-import logging
+from unidecode import unidecode
 from copy import deepcopy
+import logging
 
 from ..constants import keys
 
@@ -16,8 +17,9 @@ def postproc_queries(
 
   filtered_data       = _filter(unprocessed_data)
   flattened_data      = _flatten(filtered_data)
+  ascii_data          = _ascii(flattened_data)
 
-  output_data         = flattened_data
+  output_data         = ascii_data
   objects_count_after = len(output_data)
 
   logger.info(
@@ -25,9 +27,7 @@ def postproc_queries(
   )
   return output_data
 
-def _filter(
-  data: list[dict]
-) -> list[dict]:
+def _filter(data: list[dict]) -> list[dict]:
   filtered_data = data
   filtered_count = 0
 
@@ -57,9 +57,7 @@ def _filter(
   )
   return filtered_data
 
-def _flatten(
-  data: list[dict]
-) -> list[dict]:
+def _flatten(data: list[dict]) -> list[dict]:
   flattened_data = []
 
   for query_object in data:
@@ -85,3 +83,15 @@ def _flatten(
     f'Flattened query results'
   )
   return flattened_data
+
+def _ascii(data: list[dict]) -> list[dict]:
+  ascii_data = data
+  for query_result in ascii_data:
+    for value in query_result.values():
+      if type(value) is str:
+        value = unidecode(value, errors='replace', replace_str='?')
+  
+  logger.info(
+    f'Converted all string fields to ASCII characters'
+  )
+  return ascii_data
