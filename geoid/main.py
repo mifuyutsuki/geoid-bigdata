@@ -20,6 +20,9 @@ def begin(
 
   querier_config = BigQuerierConfig()
   querier_config.scroll_wait_seconds = 1.1
+  querier_config.autosave_every = 1
+  querier_config.keep_autosave = False
+  querier_config.query_depth = query_depth
 
   if use_timestamp:
     timestamp = time.strftime('%Y%m%d_%H%M%S')
@@ -33,10 +36,7 @@ def begin(
 
   logger.info('Initializing webdriver')
   try:
-    if web_client == 'firefox':
-      driver = _initialize_driver_firefox(show_client=show_client)
-    elif web_client == 'chrome':
-      driver = _initialize_driver_chrome(show_client=show_client)
+    driver = _initialize_driver(web_client, show_client=show_client)
   except WebDriverException as e:
     logger.exception(e)
     logger.error(
@@ -52,8 +52,7 @@ def begin(
   try:
     querier.begin(
       driver,
-      keyword,
-      query_depth=query_depth
+      keyword
     )
   except Exception as e:
     logger.error(str(e))
@@ -68,16 +67,20 @@ def begin(
 
   querier.export_json(indent=indent)
 
-def _initialize_driver_firefox(*, show_client=False):
-  options = webdriver.FirefoxOptions()
-  if not show_client:
-    options.add_argument('-headless')
-  driver = webdriver.Firefox(options=options)
-  return driver
+def _initialize_driver(web_client: str, *, show_client=False):
+  if web_client.lower() == 'firefox':
+    options = webdriver.FirefoxOptions()
+    if not show_client:
+      options.add_argument('-headless')
+    driver = webdriver.Firefox(options=options)
+  
+  elif web_client.lower() == 'chrome':
+    options = webdriver.ChromeOptions()
+    if not show_client:
+      options.add_argument('--headless=new')
+    driver = webdriver.Chrome(options=options)
+  
+  else:
+    raise ValueError(f'Invalid or unsupported web client: {web_client}')
 
-def _initialize_driver_chrome(*, show_client=False):
-  options = webdriver.ChromeOptions()
-  if not show_client:
-    options.add_argument('-headless')
-  driver = webdriver.Chrome(options=options)
   return driver

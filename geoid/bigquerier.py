@@ -17,6 +17,10 @@ class BigQuerierConfig:
     self.loading_timeout_seconds = 15.0
     self.scroll_wait_seconds     = 2.5
     self.scroll_retries          = 5
+    self.autosave_every          = 1
+    self.keep_autosave           = False
+    self.query_depth             = 0
+    self.query_lang              = 'id'
 
 class BigQuerier:
   def __init__(
@@ -26,7 +30,6 @@ class BigQuerier:
     *,
     use_config: BigQuerierConfig = None
   ):
-    self._output_data = []
     with open(source_filename, 'r', encoding='UTF-8') as json_file:
       self._input_data = json.load(json_file)
     
@@ -37,10 +40,15 @@ class BigQuerier:
       f'Imported queries file "{source_filename}"'
     )
 
+    self.QUERY_SUCCESS = 0
+    self.QUERY_MISSING = 1
+    self.QUERY_ERROR   = 2
+
     self.queries_count = len(self._input_data)
     self.outputs_count = 0
     self.missing_count = 0
     self.errored_count = 0
+    self._output_data  = []
     self.missing_data  = []
     self.errored_data  = []
 
@@ -80,11 +88,7 @@ class BigQuerier:
   def begin(
     self,
     webdriver: WebDriver,
-    keyword: str,
-    *,
-    query_depth=1,
-    query_lang='id',
-    autosave_every=1
+    keyword: str
   ):
     logger.info(
       f'Starting big query of "{self.source_filename}", keyword: "{keyword}"'
@@ -103,47 +107,16 @@ class BigQuerier:
     )
 
     for index, query_object in enumerate(queries_data):
-      try:
-        query = query_object[keys.QUERY]
-      except KeyError:
-        self.missing_data.append(query_object)
-        logger.info(
-          f'({str(index+1)}/{str(self.queries_count)}): Skipping due to missing query term'
-        )
-        logger.debug(
-          f'Missing query-term object:\n{str(query_object)}'
-        )
-        continue
-      
-      logger.info(
-        f'({str(index+1)}/{str(self.queries_count)}): Querying "{query}"'
+      status, results = self._begin_one(
+        index=index,
+        query_object=query_object
       )
-
-      output_object = query_object.copy()
-      try:
-        results = self._begin_one(
-          query,
-          query_depth=query_depth,
-          query_lang=query_lang
-        )
-
-      except Exception as e:
-        self.errored_count = self.errored_count + 1
-        self.errored_data.append(query_object)
-
-        logger.error(str(e))
-        logger.error(
-          f'Could not process entry #{str(index+1)}'
-        )
-        logger.debug(
-          f'Errored object:\n{str(query_object)}'
-        )
-        continue
-
-      output_object.update(results)
-      self._output_data.append(output_object)
-      self.outputs_count = len(self._output_data)
-      self.autosave(autosave_every)
+      if status == self.QUERY_SUCCESS:
+        output_object = query_object.copy()
+        output_object.update(results)
+        self._output_data.append(output_object)
+        self.outputs_count = len(self._output_data)
+        # self.autosave(autosave_every)
     
     logger.info(
       f'Finished big query of "{self.source_filename}"'
@@ -169,13 +142,57 @@ class BigQuerier:
         )
       )
 
-  def _begin_one(self,
-    query: str,
-    *,
-    query_depth=1,
-    query_lang='id'
+  def _begin_one(
+    self,
+    index: int,
+    query_object: dict
   ):
-    self.querier.begin(query, query_depth=query_depth, query_lang=query_lang)
+    #: 1. Check for missing query keyword
+    try:
+      query = query_object[keys.QUERY]
+    except KeyError:
+      self.missing_data.append(query_object)
+      logger.info(
+        f'({str(index+1)}/{str(self.queries_count)}): '
+        f'Skipping due to missing query term'
+      )
+      logger.debug(
+        f'Missing query-term object:\n{str(query_object)}'
+      )
+      return self.QUERY_MISSING, {}
+    else:
+      logger.info(
+        f'({str(index+1)}/{str(self.queries_count)}): '
+        f'Querying "{query}"'
+      )
+
+    #: Do query
+    try:
+      results = self._query_one(
+        query
+      )
+    except Exception as e:
+      self.errored_count = self.errored_count + 1
+      self.errored_data.append(query_object)
+      logger.error(str(e))
+      logger.error(
+        f'Could not process entry #{str(index+1)}'
+      )
+      logger.debug(
+        f'Errored object:\n{str(query_object)}'
+      )
+      return self.QUERY_ERROR, {}
+    else:
+      return self.QUERY_SUCCESS, results
+
+  def _query_one(self,
+    query: str
+  ):
+    self.querier.begin(
+      query,
+      query_depth=self.config.query_depth,
+      query_lang=self.config.query_lang
+    )
 
     result = self.querier.grab_results()
     return result.report()
@@ -204,34 +221,35 @@ class BigQuerier:
   def export_json(
     self,
     filename=None,
-    indent=1
+    indent=1,
+    **json_kwargs
   ):
     if filename is None:
       filename = self.output_filename
 
     try:
       with open(filename, 'w', encoding='UTF-8') as json_file:
-        json.dump(self.output_data, json_file, indent=indent)
+        json.dump(self.output_data, json_file, indent=indent, **json_kwargs)
     except OSError as e:
       logger.error(str(e))
       logger.error(
         f'Unable to export to JSON file {filename}'
       )
       return
-    
-    logger.info(
-      f'Exported data to JSON file "{filename}"'
-    )
-
-    try:
-      os.remove(self.autosave_filename)
-    except OSError:
-      pass
     else:
       logger.info(
-        f'Removed autosave "{self.autosave_filename}"'
+        f'Exported data to JSON file "{filename}"'
       )
-
+    
+    if not self.config.keep_autosave:
+      try:
+        os.remove(self.autosave_filename)
+      except OSError:
+        pass
+      else:
+        logger.info(
+          f'Removed autosave "{self.autosave_filename}"'
+        )
 
   @property
   def input_data(self):
