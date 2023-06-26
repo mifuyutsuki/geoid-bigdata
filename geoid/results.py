@@ -94,39 +94,39 @@ class Results:
       f'Processed results of query: "{self.metadata.query}"'
     )
     
-  def export_csv(
-    self,
-    filename: str,
-    *,
-    quoting=csv.QUOTE_ALL,
-    lineterminator='\n',
-    **csv_kwargs
-  ):
-    if len(self.results) <= 0:
-      raise ValueError('No search results entries to export')
-    if len(filename) <= 0:
-      raise ValueError('Filename cannot be blank')
+  # def export_csv(
+  #   self,
+  #   filename: str,
+  #   *,
+  #   quoting=csv.QUOTE_ALL,
+  #   lineterminator='\n',
+  #   **csv_kwargs
+  # ):
+  #   if len(self.results) <= 0:
+  #     raise ValueError('No search results entries to export')
+  #   if len(filename) <= 0:
+  #     raise ValueError('Filename cannot be blank')
     
-    # Fields with newlines cause issues in CSV
-    results = deepcopy(self.results)
-    for result in results:
-      for value in result.values():
-        value = value.replace('\n', '; ')
+  #   # Fields with newlines cause issues in CSV
+  #   results = deepcopy(self.results)
+  #   for result in results:
+  #     for value in result.values():
+  #       value = value.replace('\n', '; ')
     
-    with open(filename, 'w', encoding='UTF-8') as csv_file:
-      csv_writer = csv.DictWriter(
-        csv_file,
-        fieldnames=self._keys,
-        quoting=quoting,
-        lineterminator=lineterminator,
-        **csv_kwargs
-      )
-      csv_writer.writeheader()
-      csv_writer.writerows(results)
+  #   with open(filename, 'w', encoding='UTF-8') as csv_file:
+  #     csv_writer = csv.DictWriter(
+  #       csv_file,
+  #       fieldnames=self._keys,
+  #       quoting=quoting,
+  #       lineterminator=lineterminator,
+  #       **csv_kwargs
+  #     )
+  #     csv_writer.writeheader()
+  #     csv_writer.writerows(results)
 
-    logger.info(
-      f'Exported query to CSV file "{filename}"'
-    )
+  #   logger.info(
+  #     f'Exported query to CSV file "{filename}"'
+  #   )
   
   def export_json(
     self,
