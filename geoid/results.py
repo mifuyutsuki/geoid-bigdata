@@ -11,25 +11,49 @@ logging.basicConfig(
 )
 logger = logging.getLogger('Results')
 
+class ResultsMetadata:
+  def __init__(
+    self,
+    query: str,
+    lang: str,
+    timestamp: int
+  ):
+    self._query     = query
+    self._lang      = lang
+    self._timestamp = timestamp
+  
+  @property
+  def query(self):
+    return self._query
+  
+  @property
+  def lang(self):
+    return self._lang
+  
+  @property
+  def timestamp(self):
+    return self._timestamp
+
 class Results:
   def __init__(
     self,
-    grabbed_html: str,
     query: str,
     query_lang: str,
     query_timestamp: int
   ):
-    self._keys = None
-    self._query = query
-    self._query_lang = query_lang
-    self._query_timestamp = query_timestamp
-
-    results = []
-
+    self.metadata       = ResultsMetadata(query, query_lang, query_timestamp)
+    self._results       = []
+    self._results_count = 0
+  
+  def from_html(
+    self,
+    grabbed_html: str
+  ):
     logger.info(
       f'Processing results of query: "{self._query}"'
     )
-
+    results = []
+    
     #: 1. Parse
     dump_soup = BeautifulSoup(grabbed_html, 'lxml')
     results_raw = dump_soup.select(cselectors.RESULT)
@@ -37,13 +61,13 @@ class Results:
     for result_raw in results_raw:
       if result_raw is not None:
         result = processing.results.proc_entry(
-          result_raw, query_lang=query_lang
+          result_raw, query_lang=self.metadata.lang
         )
         results.append(result)
     
     #: 2. Get Subdivision
     logger.info(
-      f'Getting municipality data: "{self._query}"'
+      f'Getting municipality data: "{self.metadata.query}"'
     )
     process_error_count = 0
     for result in results:
@@ -55,7 +79,7 @@ class Results:
         continue
     
     logger.info(
-      f'Got municipality data: "{self._query}"'
+      f'Got municipality data: "{self.metadata.query}"'
     )
     if process_error_count > 0:     
       logger.warning(
@@ -67,9 +91,9 @@ class Results:
     self._results_count = len(results)
 
     logger.info(
-      f'Processed results of query: "{self._query}"'
+      f'Processed results of query: "{self.metadata.query}"'
     )
-  
+    
   def export_csv(
     self,
     filename: str,
@@ -86,8 +110,8 @@ class Results:
     # Fields with newlines cause issues in CSV
     results = deepcopy(self.results)
     for result in results:
-      for key in result.keys():
-        result[key] = result[key].replace('\n', '; ')
+      for value in result.values():
+        value = value.replace('\n', '; ')
     
     with open(filename, 'w', encoding='UTF-8') as csv_file:
       csv_writer = csv.DictWriter(
@@ -126,9 +150,9 @@ class Results:
 
   def report(self) -> dict:
     report_dump = {
-      keys.QUERY               : self.query,
-      keys.QUERY_LANG          : self.query_lang,
-      keys.QUERY_TIMESTAMP     : self.query_timestamp,
+      keys.QUERY               : self.metadata.query,
+      keys.QUERY_LANG          : self.metadata.lang,
+      keys.QUERY_TIMESTAMP     : self.metadata.timestamp,
       keys.QUERY_RESULTS_COUNT : self.results_count,
       keys.QUERY_RESULTS       : self.results
     }
@@ -142,18 +166,6 @@ class Results:
     return deepcopy(self._results)
   
   #: Properties are read-only
-
-  @property
-  def query(self) -> str:
-    return self._query
-  
-  @property
-  def query_lang(self) -> str:
-    return self._query_lang
-  
-  @property
-  def query_timestamp(self) -> int:
-    return self._query_timestamp
   
   @property
   def results(self) -> list[dict]:

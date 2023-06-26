@@ -129,12 +129,12 @@ class Querier():
       f'Found {str(query_final_count)} entry(s)'
     )
 
-    return Results(
-      grabbed_html,
+    results_data = Results(
       self._query,
       self._query_lang,
       self._query_timestamp
     )
+    return results_data.from_html(grabbed_html)
 
   def _count_results(self):
     results_count = 0
