@@ -15,9 +15,9 @@ def postproc_queries(
 ) -> list[dict]:
   unprocessed_data    = deepcopy(data)
 
-  filtered_data       = _filter(unprocessed_data)
-  flattened_data      = _flatten(filtered_data)
-  ascii_data          = _ascii(flattened_data)
+  filtered_data       = filter_by_city(unprocessed_data)
+  flattened_data      = convert_flat(filtered_data)
+  ascii_data          = convert_ascii(flattened_data)
 
   output_data         = ascii_data
   objects_count_after = len(output_data)
@@ -27,7 +27,7 @@ def postproc_queries(
   )
   return output_data
 
-def _filter(data: list[dict]) -> list[dict]:
+def filter_by_city(data: list[dict]) -> list[dict]:
   filtered_data = data
   filtered_count = 0
 
@@ -57,7 +57,7 @@ def _filter(data: list[dict]) -> list[dict]:
   )
   return filtered_data
 
-def _flatten(data: list[dict]) -> list[dict]:
+def convert_flat(data: list[dict]) -> list[dict]:
   flattened_data = []
 
   for query_object in data:
@@ -84,7 +84,7 @@ def _flatten(data: list[dict]) -> list[dict]:
   )
   return flattened_data
 
-def _ascii(data: list[dict]) -> list[dict]:
+def convert_ascii(data: list[dict]) -> list[dict]:
   ascii_data = data
   for query_result in ascii_data:
     for value in query_result.values():
