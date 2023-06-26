@@ -35,16 +35,20 @@ class ResultsMetadata:
     return self._timestamp
 
 class Results:
-  def __init__(
+  def __init__(self):
+    self.metadata       = ResultsMetadata('', '', 0)
+    self._results       = []
+    self._results_count = 0
+  
+  def set_metadata(
     self,
     query: str,
     query_lang: str,
     query_timestamp: int
   ):
-    self.metadata       = ResultsMetadata(query, query_lang, query_timestamp)
-    self._results       = []
-    self._results_count = 0
-  
+    self.metadata = ResultsMetadata(query, query_lang, query_timestamp)
+    return self
+
   def from_html(
     self,
     grabbed_html: str

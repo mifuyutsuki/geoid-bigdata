@@ -130,7 +130,8 @@ class Querier():
       f'Found {str(query_final_count)} entry(s)'
     )
 
-    results_data = Results(
+    results_data = Results()
+    results_data.set_metadata(
       self._query,
       self._query_lang,
       self._query_timestamp
