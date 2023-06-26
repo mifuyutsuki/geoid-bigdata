@@ -94,16 +94,17 @@ class Querier():
 
     #: Sometimes the site gives an alternate results view
     #: (with website+route instead of image)
-    #: --> Wait for several seconds, then refresh page once
-    alt_results_elements = self.webdriver.find_elements(
-      By.CSS_SELECTOR, cselectors.TARGET_RESULT
-    )
-    if len(alt_results_elements) <= 0:
-      logger.info(
-        'Refreshing page to obtain search results of the desired type'
-      )
-      sleep(4)
-      self.webdriver.refresh()
+    #: --> Same info is obtained, only except for location image
+
+    # alt_results_elements = self.webdriver.find_elements(
+    #   By.CSS_SELECTOR, cselectors.TARGET_RESULT
+    # )
+    # if len(alt_results_elements) <= 0:
+    #   logger.info(
+    #     'Refreshing page to obtain search results of the desired type'
+    #   )
+    #   sleep(4)
+    #   self.webdriver.refresh()
     
     #: Query depth of 1 --> only grab the first "page", no scroll needed
     if self._query_depth != 1:
