@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.common.exceptions import *
 from . import BigQuerier, BigQuerierConfig, LOG_CONFIG
 import logging, logging.config, time
 
@@ -31,11 +32,22 @@ def begin(
   )
 
   logger.info('Initializing webdriver')
-  if web_client == 'firefox':
-    driver = _initialize_driver_firefox(show_client=show_client)
-  elif web_client == 'chrome':
-    driver = _initialize_driver_chrome(show_client=show_client)
-  logger.info('Initialized webdriver')
+  try:
+    if web_client == 'firefox':
+      driver = _initialize_driver_firefox(show_client=show_client)
+    elif web_client == 'chrome':
+      driver = _initialize_driver_chrome(show_client=show_client)
+  except WebDriverException as e:
+    logger.exception(e)
+    logger.error(
+      'Unable to initialize webdriver'
+    )
+    quit()
+  except Exception as e:
+    logger.exception(e)
+    quit()
+  else:
+    logger.info('Initialized webdriver')
 
   try:
     querier.begin(
