@@ -10,5 +10,6 @@ tests/
 # Logs
 *.log
 
-# VS Code debugger
-launch.json
+# VS Code things
+.vscode
+vscode/
