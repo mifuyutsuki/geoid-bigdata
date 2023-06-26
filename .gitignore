@@ -1,6 +1,14 @@
+# From virtual environment
 __pycache__/
-temp/
-tests/
-*.log
 .venv
 venv/
+
+# Test and temp files
+temp/
+tests/
+
+# Logs
+*.log
+
+# VS Code debugger
+launch.json
