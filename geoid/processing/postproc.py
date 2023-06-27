@@ -9,24 +9,6 @@ logging.basicConfig(
   format='[%(asctime)s] [%(name)s] %(levelname)s: %(message)s'
 )
 logger = logging.getLogger('Postprocessing')
-  
-def postproc_queries(
-  data: list[dict]
-) -> list[dict]:
-  processed_data       = deepcopy(data)
-
-  processed_data       = filter_by_city(processed_data)
-  processed_data       = convert_flat(processed_data)
-  processed_data       = convert_ascii(processed_data)
-  processed_data       = replace_characters(processed_data, '\n', '; ')
-
-  output_data          = processed_data
-  objects_count_after  = len(output_data)
-
-  logger.info(
-    f'Outputted {str(objects_count_after)} entry(s)'
-  )
-  return output_data
 
 def filter_by_city(data: list[dict]) -> list[dict]:
   filtered_data = data
@@ -80,8 +62,9 @@ def convert_flat(data: list[dict]) -> list[dict]:
       flattened_object.update(query_result)
       flattened_data.append(flattened_object)
   
+  flattened_data_count = len(flattened_data)
   logger.debug(
-    f'Flattened query results'
+    f'Flattened query results to {str(flattened_data_count)} entry(s)'
   )
   return flattened_data
 
@@ -99,6 +82,9 @@ def convert_ascii(data: list[dict]) -> list[dict]:
     f'Converted all string fields to ASCII characters'
   )
   return ascii_data
+
+def replace_newline(data: list[dict]) -> list[dict]:
+  return replace_characters(data, '\n', '; ')
 
 def replace_characters(
   data: list[dict],

@@ -1,6 +1,8 @@
 from selenium import webdriver
 from selenium.common.exceptions import *
-from . import BigQuerier, BigQuerierConfig, LOG_CONFIG
+from . import BigQuerier
+from .config import Config
+from .logging import LOG_CONFIG
 import logging, logging.config, time
 
 def begin(
@@ -18,11 +20,11 @@ def begin(
   logging.config.dictConfig(LOG_CONFIG)
   logger = logging.getLogger('geoid')
 
-  querier_config = BigQuerierConfig()
-  querier_config.scroll_wait_seconds = 1.1
-  querier_config.autosave_every = 1
-  querier_config.keep_autosave = False
-  querier_config.query_depth = query_depth
+  config = Config()
+  config.bigquerier.scroll_wait_seconds = 1.1
+  config.bigquerier.autosave_every = 1
+  config.bigquerier.keep_autosave = False
+  config.bigquerier.query_depth = query_depth
 
   if use_timestamp:
     timestamp = time.strftime('%Y%m%d_%H%M%S')
@@ -31,7 +33,7 @@ def begin(
   querier = BigQuerier(
     source_file,
     output_file,
-    use_config=querier_config
+    use_config=config
   )
 
   logger.info('Initializing webdriver')

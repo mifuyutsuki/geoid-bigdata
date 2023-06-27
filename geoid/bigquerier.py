@@ -3,6 +3,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 import json, logging, os
 
 from .querier import Querier
+from .config import Config
 from .constants import keys
 from . import processing
 
@@ -12,23 +13,13 @@ logging.basicConfig(
 )
 logger = logging.getLogger('BigQuerier')
 
-class BigQuerierConfig:
-  def __init__(self):
-    self.loading_timeout_seconds = 15.0
-    self.scroll_wait_seconds     = 2.5
-    self.scroll_retries          = 5
-    self.autosave_every          = 1
-    self.keep_autosave           = False
-    self.query_depth             = 0
-    self.query_lang              = 'id'
-
 class BigQuerier:
   def __init__(
     self,
     source_filename: str,
     output_filename: str,
     *,
-    use_config: BigQuerierConfig = None
+    use_config: Config = None
   ):
     with open(source_filename, 'r', encoding='UTF-8') as json_file:
       self._input_data = json.load(json_file)
@@ -67,7 +58,8 @@ class BigQuerier:
     if use_config is not None:
       self.config = use_config
     else:
-      self.config = BigQuerierConfig()
+      #: Use default values
+      self.config = Config()
 
   def _detect_missing_query_terms(self):
     missing_count = 0
@@ -101,9 +93,9 @@ class BigQuerier:
     self.webdriver = webdriver
     self.querier = Querier(
       self.webdriver,
-      loading_timeout_seconds=self.config.loading_timeout_seconds,
-      scroll_wait_seconds=self.config.scroll_wait_seconds,
-      scroll_retries=self.config.scroll_retries
+      loading_timeout_seconds=self.config.bigquerier.loading_timeout_seconds,
+      scroll_wait_seconds=self.config.bigquerier.scroll_wait_seconds,
+      scroll_retries=self.config.bigquerier.scroll_retries
     )
 
     for index, query_object in enumerate(queries_data):
@@ -116,7 +108,7 @@ class BigQuerier:
         output_object.update(results)
         self._output_data.append(output_object)
         self.outputs_count = len(self._output_data)
-        self.autosave(self.config.autosave_every)
+        self.autosave(self.config.bigquerier.autosave_every)
     
     logger.info(
       f'Finished big query of "{self.source_filename}"'
@@ -185,20 +177,30 @@ class BigQuerier:
     else:
       return self.QUERY_SUCCESS, results
 
-  def _query_one(self,
+  def _query_one(
+    self,
     query: str
   ):
     self.querier.begin(
       query,
-      query_depth=self.config.query_depth,
-      query_lang=self.config.query_lang
+      query_depth=self.config.bigquerier.query_depth,
+      query_lang=self.config.bigquerier.query_lang
     )
 
     result = self.querier.grab_results()
     return result.report()
   
   def postprocess(self):
-    self._output_data = processing.postproc_queries(self._output_data)
+    process_data = self._output_data
+    if self.config.postproc.filter:
+      process_data = processing.postproc.filter_by_city(process_data)
+    if self.config.postproc.flatten:
+      process_data = processing.postproc.convert_flat(process_data)
+    if self.config.postproc.convert_ascii:
+      process_data = processing.postproc.convert_ascii(process_data)
+    if self.config.postproc.replace_newline:
+      process_data = processing.postproc.replace_newline(process_data)
+    self._output_data = process_data
 
   def autosave(
     self,
@@ -241,7 +243,7 @@ class BigQuerier:
         f'Exported data to JSON file "{filename}"'
       )
     
-    if not self.config.keep_autosave:
+    if not self.config.bigquerier.keep_autosave:
       try:
         os.remove(self.autosave_filename)
       except OSError:
