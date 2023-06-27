@@ -87,14 +87,13 @@ def convert_flat(data: list[dict]) -> list[dict]:
 
 def convert_ascii(data: list[dict]) -> list[dict]:
   ascii_data = data
-  for single_data in ascii_data:
-    for key in single_data.keys():
-      if type(single_data[key]) is str:
-        single_data[key] = unidecode(
-          single_data[key],
-          errors='replace',
-          replace_str='?'
-        )
+  
+  def fun(s):
+    if isinstance(s, str):
+      return unidecode(s, errors='replace', replace_str='?')
+    else:
+      return s
+  ascii_data = lambda_values(ascii_data, fun)
   
   logger.debug(
     f'Converted all string fields to ASCII characters'
@@ -105,14 +104,34 @@ def replace_characters(
   data: list[dict],
   char_from: str,
   char_to: str
-) -> list[dict]:
+) -> list[dict]:  
   replaced_data = data
-  for single_data in replaced_data:
-    for key in single_data.keys():
-      if type(single_data[key]) is str:
-        single_data[key] = single_data[key].replace(char_from, char_to)
-  
+
+  def fun(s):
+    if isinstance(s, str):
+      return s.replace(char_from, char_to)
+    else:
+      return s
+  replaced_data = lambda_values(replaced_data, fun)
+
   logger.debug(
     f'Converted all instances of "{char_from}" to "{char_to}"'
   )
   return replaced_data
+
+def lambda_values(
+  data: list[dict],
+  value_function
+):
+  target_data = data
+
+  for single_data in target_data:
+    for key in single_data.keys():
+      if isinstance(single_data[key], list):
+        target_data = lambda_values(target_data, value_function)
+      elif isinstance(single_data[key], dict):
+        pass
+      else:
+        single_data[key] = value_function(single_data[key])
+  
+  return target_data
