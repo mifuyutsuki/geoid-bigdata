@@ -86,7 +86,7 @@ class BigQuerier:
       f'Starting big query of "{self.source_filename}", keyword: "{keyword}"'
     )
 
-    queries_data = processing.preproc_queries(
+    queries_data = processing.preproc.preproc_queries(
       keyword, self._input_data
     )
 
@@ -108,7 +108,7 @@ class BigQuerier:
         output_object.update(results)
         self._output_data.append(output_object)
         self.outputs_count = len(self._output_data)
-        self.autosave(self.config.bigquerier.autosave_every)
+        self.autosave(self.config.fileio.autosave_every)
     
     logger.info(
       f'Finished big query of "{self.source_filename}"'
@@ -243,7 +243,7 @@ class BigQuerier:
         f'Exported data to JSON file "{filename}"'
       )
     
-    if not self.config.bigquerier.keep_autosave:
+    if not self.config.fileio.keep_autosave:
       try:
         os.remove(self.autosave_filename)
       except OSError:

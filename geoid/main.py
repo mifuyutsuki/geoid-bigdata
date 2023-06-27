@@ -10,23 +10,17 @@ def begin(
   source_file: str,
   output_file: str,
   *,
-  query_depth=0,
-  indent=1,
-  web_client='firefox',
-  show_client=False,
-  use_postprocess=True,
-  use_timestamp=True
+  use_config:Config=None
 ):
   logging.config.dictConfig(LOG_CONFIG)
   logger = logging.getLogger('geoid')
 
-  config = Config()
-  config.bigquerier.scroll_wait_seconds = 1.1
-  config.bigquerier.autosave_every = 1
-  config.bigquerier.keep_autosave = False
-  config.bigquerier.query_depth = query_depth
+  if use_config is not None:
+    config = use_config
+  else:
+    config = Config()
 
-  if use_timestamp:
+  if config.fileio.use_timestamp_name:
     timestamp = time.strftime('%Y%m%d_%H%M%S')
     output_file = output_file.replace("{timestamp}", timestamp)
 
@@ -38,7 +32,10 @@ def begin(
 
   logger.info('Initializing webdriver')
   try:
-    driver = _initialize_driver(web_client, show_client=show_client)
+    driver = _initialize_driver(
+      config.webclient.webclient,
+      show_client=config.webclient.show
+    )
   except WebDriverException as e:
     logger.exception(e)
     logger.error(
@@ -67,24 +64,23 @@ def begin(
   if querier.outputs_count <= 0:
     logger.info('No query results to process further')
   else:
-    if use_postprocess:
-      querier.postprocess()
-    querier.export_json(indent=indent)
+    querier.postprocess()
+    querier.export_json(indent=config.fileio.output_indent)
 
-def _initialize_driver(web_client: str, *, show_client=False):
-  if web_client.lower() == 'firefox':
+def _initialize_driver(webclient: str, *, show_client=False):
+  if webclient.lower() == 'firefox':
     options = webdriver.FirefoxOptions()
     if not show_client:
       options.add_argument('-headless')
     driver = webdriver.Firefox(options=options)
   
-  elif web_client.lower() == 'chrome':
+  elif webclient.lower() == 'chrome':
     options = webdriver.ChromeOptions()
     if not show_client:
       options.add_argument('--headless=new')
     driver = webdriver.Chrome(options=options)
   
   else:
-    raise ValueError(f'Invalid or unsupported web client: {web_client}')
+    raise ValueError(f'Invalid or unsupported web client: {webclient}')
 
   return driver

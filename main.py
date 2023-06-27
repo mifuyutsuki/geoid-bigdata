@@ -1,5 +1,6 @@
 import argparse
 from geoid import begin, __version__
+from geoid.config import Config
 
 parser = argparse.ArgumentParser(
   description=
@@ -109,6 +110,17 @@ def main():
         'to use the timestamp option'
       )
       quit()
+  
+  config = Config()
+  config.bigquerier.query_depth    = args.depth
+  config.fileio.output_indent      = args.indent
+  config.webclient.webclient       = args.browser
+  config.webclient.show            = args.show
+  config.fileio.use_timestamp_name = args.timestamp
+  config.postproc.filter           = args.filter
+  config.postproc.flatten          = args.flatten
+  config.postproc.convert_ascii    = args.convert_ascii
+  config.postproc.replace_newline  = args.replace_newline
 
   if args.cities is None:
     print(
@@ -125,11 +137,7 @@ def main():
       keyword=args.keyword,
       source_file=args.cities,
       output_file=args.output,
-      query_depth=args.depth,
-      indent=args.indent,
-      web_client=args.browser,
-      show_client=args.show,
-      use_timestamp=args.timestamp
+      use_config=config
     )
 
 if __name__ == '__main__':

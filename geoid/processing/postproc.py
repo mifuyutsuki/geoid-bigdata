@@ -63,7 +63,7 @@ def convert_flat(data: list[dict]) -> list[dict]:
       flattened_data.append(flattened_object)
   
   flattened_data_count = len(flattened_data)
-  logger.debug(
+  logger.info(
     f'Flattened query results to {str(flattened_data_count)} entry(s)'
   )
   return flattened_data
@@ -78,7 +78,7 @@ def convert_ascii(data: list[dict]) -> list[dict]:
       return s
   ascii_data = lambda_values(ascii_data, fun)
   
-  logger.debug(
+  logger.info(
     f'Converted all string fields to ASCII characters'
   )
   return ascii_data
@@ -100,8 +100,8 @@ def replace_characters(
       return s
   replaced_data = lambda_values(replaced_data, fun)
 
-  logger.debug(
-    f'Converted all instances of "{char_from}" to "{char_to}"'
+  logger.info(
+    f'Converted all character instances of "{char_from}" to "{char_to}"'
   )
   return replaced_data
 
