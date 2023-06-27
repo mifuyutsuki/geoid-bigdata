@@ -93,9 +93,7 @@ class BigQuerier:
     self.webdriver = webdriver
     self.querier = Querier(
       self.webdriver,
-      loading_timeout_seconds=self.config.bigquerier.loading_timeout_seconds,
-      scroll_wait_seconds=self.config.bigquerier.scroll_wait_seconds,
-      scroll_retries=self.config.bigquerier.scroll_retries
+      use_config=self.config
     )
 
     for index, query_object in enumerate(queries_data):
@@ -182,12 +180,7 @@ class BigQuerier:
     self,
     query: str
   ):
-    self.querier.begin(
-      query,
-      query_depth=self.config.bigquerier.query_depth,
-      query_lang=self.config.bigquerier.query_lang
-    )
-
+    self.querier.begin(query)
     result = self.querier.grab_results()
     return result.report()
   

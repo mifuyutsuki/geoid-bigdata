@@ -1,13 +1,10 @@
-class BigQuerierConfig:
+class QueryConfig:
   def __init__(self):
     self.loading_timeout_seconds = 15.0
     self.scroll_wait_seconds     = 1.1
     self.scroll_retries          = 5
-    self.autosave_every          = 1
-    self.keep_autosave           = False
-    self.query_depth             = 0
-    self.query_lang              = 'id'
-    self.output_indent           = 2
+    self.depth                   = 0
+    self.lang                    = 'id'
 
 class PostprocConfig:
   def __init__(self):
@@ -30,7 +27,7 @@ class WebClientConfig:
 
 class Config:
   def __init__(self):
-    self.bigquerier = BigQuerierConfig()
+    self.query      = QueryConfig()
     self.postproc   = PostprocConfig()
     self.fileio     = FileIOConfig()
     self.webclient  = WebClientConfig()

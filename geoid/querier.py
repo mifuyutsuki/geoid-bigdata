@@ -7,6 +7,7 @@ from time import time, sleep
 import logging
 
 from .results import Results
+from .config import Config
 from .constants import cselectors, links
 
 logging.basicConfig(
@@ -22,44 +23,37 @@ class Querier():
   def __init__(self,
     webdriver: WebDriver,
     *,
-    loading_timeout_seconds=15.0,
-    scroll_wait_seconds=2.5,
-    scroll_retries=5
+    use_config:Config=None
   ):
     self._query           = None
-    self._query_depth     = None
-    self._query_lang      = None
-    self._query_timestamp = None
+    self.webdriver        = webdriver
 
-    self.webdriver               = webdriver
-    self.loading_timeout_seconds = loading_timeout_seconds
-    self.scroll_wait_seconds     = scroll_wait_seconds
-    self.scroll_retries          = scroll_retries
+    if use_config is not None:
+      self.config = use_config
+    else:
+      self.config = Config()
 
-  def begin(self,
-    query: str, /,
-    query_depth=1,
-    query_lang='id'
+  def begin(
+    self,
+    query: str
   ):
     if len(query) <= 0:
       raise ValueError('Query key must not be empty')
-    if query_depth < 0:
-      raise ValueError(f'Invalid query count of {query_depth}')
+    if self.config.query.depth < 0:
+      raise ValueError(f'Invalid query count of {self.config.query.depth}')
     
     self._query = query
-    self._query_depth = query_depth
-    self._query_lang = query_lang
     self._query_timestamp = int(time())
 
     logger.debug(
       f'Querying: "{query}"'
-      f', depth: {str(query_depth)}'
-      f', language: {query_lang}'
+      f', depth: {str(self.config.query.depth)}'
+      f', language: {self.config.query.lang}'
     )
     self.webdriver.get(
       links.GMAPS_QUERY_TARGET.format(
         query=quote_plus(query),
-        query_lang=quote_plus(query_lang)
+        query_lang=quote_plus(self.config.query.lang)
       )
     )
   
@@ -80,7 +74,7 @@ class Querier():
 
     try:
       WebDriverWait(
-        self.webdriver, self.loading_timeout_seconds
+        self.webdriver, self.config.query.loading_timeout_seconds
       ) \
       .until(
         lambda d:
@@ -107,11 +101,11 @@ class Querier():
     #   self.webdriver.refresh()
     
     #: Query depth of 1 --> only grab the first "page", no scroll needed
-    if self._query_depth != 1:
-      # if self._query_depth==self.INFINITE_SCROLL:
+    if self.config.query.depth != 1:
+      # if self.config.query.depth==self.INFINITE_SCROLL:
       #   log_depth = 'infinite'
       # else:
-      #   log_depth = str(self._query_depth)
+      #   log_depth = str(self.config.query.depth)
       logger.info(
         f'Scrolling query: {self._query}'
       )
@@ -133,7 +127,7 @@ class Querier():
     results_data = Results()
     results_data.set_metadata(
       self._query,
-      self._query_lang,
+      self.config.query.lang,
       self._query_timestamp
     )
     return results_data.from_html(grabbed_html)
@@ -152,14 +146,14 @@ class Querier():
     return results_count
 
   def _scroll_results(self):
-    scrolls_remaining = self._query_depth - 1
-    retries_remaining = self.scroll_retries
+    scrolls_remaining = self.config.query.depth - 1
+    retries_remaining = self.config.query.scroll_retries
     scroll_status = self.__SCROLL_FAILURE
     results_count = 0
 
     while (
       (
-        self._query_depth == self.INFINITE_SCROLL
+        self.config.query.depth == self.INFINITE_SCROLL
         or scrolls_remaining > 0
       ) \
       and retries_remaining > 0
@@ -174,7 +168,7 @@ class Querier():
 
       if (
         scroll_status == self.__SCROLL_SUCCESS and
-        self._query_depth == self.INFINITE_SCROLL
+        self.config.query.depth == self.INFINITE_SCROLL
       ):
         logger.debug(
           'Scroll - Success' + \
@@ -184,7 +178,7 @@ class Querier():
 
       elif (
         scroll_status == self.__SCROLL_SUCCESS and
-        self._query_depth != self.INFINITE_SCROLL
+        self.config.query.depth != self.INFINITE_SCROLL
       ):
         scrolls_remaining = scrolls_remaining - 1
         logger.debug(
@@ -192,7 +186,7 @@ class Querier():
           f' ({str(results_count)} entries' + \
           f', {str(scrolls_remaining)} scroll(s) left)'
         )
-        retries_remaining = self.scroll_retries
+        retries_remaining = self.config.query.scroll_retries
 
       else:
         retries_remaining = retries_remaining - 1
@@ -226,7 +220,7 @@ class Querier():
     self.webdriver.execute_script(
       "arguments[0].scrollIntoView(true);", last_result_element
     )
-    sleep(self.scroll_wait_seconds)
+    sleep(self.config.query.scroll_wait_seconds)
 
     results_count_after = self._count_results()
 

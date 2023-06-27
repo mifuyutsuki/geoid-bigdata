@@ -118,7 +118,7 @@ def main():
       quit()
   
   config = Config()
-  config.bigquerier.query_depth    = args.depth
+  config.query.depth    = args.depth
   config.fileio.output_indent      = args.indent
   config.webclient.webclient       = args.browser
   config.webclient.show            = args.show
