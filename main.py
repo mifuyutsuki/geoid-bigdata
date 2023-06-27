@@ -76,6 +76,12 @@ parser.add_argument(
   dest='timestamp'
 )
 parser.add_argument(
+  '--keep-autosave',
+  help='Don\'t remove the generated autosave on completion. Autosaves are not postprocessed.',
+  action='store_true',
+  dest='keep_autosave'
+)
+parser.add_argument(
   '--no-filter',
   help='Post: (Batch mode only) Don\'t filter results with mismatched cities.',
   action='store_false',
@@ -117,6 +123,7 @@ def main():
   config.webclient.webclient       = args.browser
   config.webclient.show            = args.show
   config.fileio.use_timestamp_name = args.timestamp
+  config.fileio.keep_autosave      = args.keep_autosave
   config.postproc.filter           = args.filter
   config.postproc.flatten          = args.flatten
   config.postproc.convert_ascii    = args.convert_ascii

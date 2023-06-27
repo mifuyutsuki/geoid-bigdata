@@ -108,7 +108,7 @@ class BigQuerier:
         output_object.update(results)
         self._output_data.append(output_object)
         self.outputs_count = len(self._output_data)
-        self.autosave(self.config.fileio.autosave_every)
+        self.autosave()
     
     logger.info(
       f'Finished big query of "{self.source_filename}"'
@@ -133,6 +133,7 @@ class BigQuerier:
           [str(errored_object) for errored_object in self.errored_data]
         )
       )
+    self.autosave()
 
   def _begin_one(
     self,
@@ -202,11 +203,8 @@ class BigQuerier:
       process_data = processing.postproc.replace_newline(process_data)
     self._output_data = process_data
 
-  def autosave(
-    self,
-    every: int
-  ):    
-    if self.outputs_count % every == 0:
+  def autosave(self):    
+    if self.outputs_count % self.config.fileio.autosave_every == 0:
       try:
         with open(self.autosave_filename, 'w', encoding='UTF-8') as json_file:
           json.dump(self.output_data, json_file, indent=1)
