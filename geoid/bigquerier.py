@@ -116,7 +116,7 @@ class BigQuerier:
         output_object.update(results)
         self._output_data.append(output_object)
         self.outputs_count = len(self._output_data)
-        # self.autosave(autosave_every)
+        self.autosave(self.config.autosave_every)
     
     logger.info(
       f'Finished big query of "{self.source_filename}"'
