@@ -123,11 +123,11 @@ def main():
   config.postproc.replace_newline  = args.replace_newline
 
   if args.cities is None:
+    # print(
+    #   f'Starting in single mode. Query: "{args.keyword}"'
+    # )
     print(
-      f'Starting in single mode. Query: "{args.keyword}"'
-    )
-    print(
-      'This feature is still work in progress.'
+      'Single mode is still work in progress.'
     )
   else:
     print(
