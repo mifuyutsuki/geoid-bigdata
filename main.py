@@ -1,14 +1,16 @@
 import argparse
-from geoid import begin
+from geoid import begin, __version__
 
 parser = argparse.ArgumentParser(
-  prog='geoid',
   description=
-    'Selenium-based GMaps data mining program for Big Data use, '
-    'specifically designed for Indonesia locations. '
+    'GMaps places data mining program for Big Data use, '
+    'designed for Indonesia locations.\n'
     'Example usage: keyword "pariwisata" '
-    '--> search "pariwisata <cityname>" for all cityname in <source>.',
-  formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    '--> search "pariwisata <cityname>" for all <cityname> in <cities>.\n'
+    '\n'
+    'Query "<keyword> <cityname>" in batch mode with -i <filename>.\n'
+    'Query "<keyword>" in single mode without using -i.',
+  formatter_class=argparse.RawDescriptionHelpFormatter
 )
 
 parser.add_argument(
@@ -16,52 +18,64 @@ parser.add_argument(
   help='Search keyword'
 )
 parser.add_argument(
-  'source', type=str,
-  help='Source containing cities data (JSON)'
-)
-parser.add_argument(
   'output', type=str,
-  help='Output file (JSON)'
+  help='Output filename (JSON)'
 )
 
 parser.add_argument(
-  '-d', '--depth', type=int,
-  help='Search depth; set 0 for endless',
+  '--version',
+  action='version',
+  version=f'geoid-BigData {__version__}'
+)
+
+parser.add_argument(
+  '-i', type=str,
+  help='Source cities filename for batch mode.',
+  nargs='?',
+  action='store',
+  default=None,
+  metavar='<filename>',
+  dest='cities'
+)
+
+parser.add_argument(
+  '-depth', type=int,
+  help='Search depth; set 0 for endless. Default: 0',
   action='store',
   default=0,
-  metavar='number',
+  metavar='<number>',
   dest='depth'
 )
 parser.add_argument(
-  '-i', '--indent', type=int,
-  help='Set output file indent by number of spaces',
+  '-indent', type=int,
+  help='Set output file indent by number of spaces. Default: 2',
   action='store',
   default=2,
-  metavar='number',
+  metavar='<number>',
   dest='indent'
 )
 parser.add_argument(
-  '-b', '--browser', type=str,
+  '-browser', type=str,
   choices=['firefox', 'chrome'],
-  help='Use a particular browser client',
+  help='Use a particular supported browser client. Default: firefox',
   action='store',
   default='firefox',
   dest='browser'
 )
 parser.add_argument(
-  '-s', '--show',
-  help='Display browser client',
+  '--show',
+  help='Display browser client.',
   action='store_true',
   dest='show'
 )
 parser.add_argument(
-  '-t', '--timestamp',
-  help='Include timestamp in output filename with {timestamp}',
+  '--timestamp',
+  help='Include timestamp in output filename with {timestamp} in <output>.',
   action='store_true',
   dest='timestamp'
 )
 
-if __name__ == '__main__':
+def main():
   args = parser.parse_args()
 
   if args.timestamp:
@@ -72,13 +86,27 @@ if __name__ == '__main__':
       )
       quit()
 
-  begin(
-    keyword=args.keyword,
-    source_file=args.source,
-    output_file=args.output,
-    query_depth=args.depth,
-    indent=args.indent,
-    web_client=args.browser,
-    show_client=args.show,
-    use_timestamp=args.timestamp
-  )
+  if args.cities is None:
+    print(
+      f'Starting in single mode. Query: "{args.keyword}"'
+    )
+    print(
+      'This feature is still work in progress.'
+    )
+  else:
+    print(
+      f'Starting in batch mode. Query: "{args.keyword} <cityname>"'
+    )
+    begin(
+      keyword=args.keyword,
+      source_file=args.cities,
+      output_file=args.output,
+      query_depth=args.depth,
+      indent=args.indent,
+      web_client=args.browser,
+      show_client=args.show,
+      use_timestamp=args.timestamp
+    )
+
+if __name__ == '__main__':
+  main()
