@@ -74,6 +74,30 @@ parser.add_argument(
   action='store_true',
   dest='timestamp'
 )
+parser.add_argument(
+  '--no-filter',
+  help='Post: (Batch mode only) Don\'t filter results with mismatched cities.',
+  action='store_false',
+  dest='filter'
+)
+parser.add_argument(
+  '--flat',
+  help='Post: Flatten query results to only a one-layer array of objects.',
+  action='store_true',
+  dest='flatten'
+)
+parser.add_argument(
+  '--ascii',
+  help='Post: Convert text in field strings to ASCII.',
+  action='store_true',
+  dest='convert_ascii'
+)
+parser.add_argument(
+  '--replace-newline',
+  help='Post: Replace newlines in field strings with semicolons.',
+  action='store_true',
+  dest='replace_newline'
+)
 
 def main():
   args = parser.parse_args()
