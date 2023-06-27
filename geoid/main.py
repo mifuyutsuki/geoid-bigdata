@@ -62,10 +62,12 @@ def begin(
     driver.quit()
     logger.info('Terminated webdriver')
 
-  if use_postprocess:
-    querier.postprocess()
-
-  querier.export_json(indent=indent)
+  if querier.outputs_count <= 0:
+    logger.info('No query results to process further')
+  else:
+    if use_postprocess:
+      querier.postprocess()
+    querier.export_json(indent=indent)
 
 def _initialize_driver(web_client: str, *, show_client=False):
   if web_client.lower() == 'firefox':
