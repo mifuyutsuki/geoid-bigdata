@@ -15,6 +15,7 @@ class PostprocConfig:
 
 class FileIOConfig:
   def __init__(self):
+    self.autosave_filename  = '.autosave'
     self.autosave_every     = 1
     self.keep_autosave      = False
     self.output_indent      = 2
