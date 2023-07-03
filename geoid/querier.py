@@ -6,7 +6,7 @@ from urllib.parse import quote_plus
 from time import time, sleep
 import logging
 
-from .results import Results
+from .query import Results
 from .config import Config
 from .constants import cselectors, links
 

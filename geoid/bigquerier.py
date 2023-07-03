@@ -2,16 +2,15 @@ from selenium.common.exceptions import *
 from selenium.webdriver.remote.webdriver import WebDriver
 import json, logging, os
 
-from .querier import Querier
 from .config import Config
 from .constants import keys
-from . import processing
+from . import query, processing
 
 logging.basicConfig(
   level=logging.INFO,
   format='[%(asctime)s] [%(name)s] %(levelname)s: %(message)s'
 )
-logger = logging.getLogger('BigQuerier')
+logger = logging.getLogger(__name__)
 
 class BigQuerier:
   def __init__(
@@ -49,17 +48,11 @@ class BigQuerier:
     self._detect_missing_query_terms()
 
     self.webdriver = None
-    self.querier   = None
+    self.config = use_config if use_config else Config()
     
     self.source_filename = source_filename
     self.output_filename = output_filename
     self.autosave_filename = output_filename + '.autosave'
-
-    if use_config is not None:
-      self.config = use_config
-    else:
-      #: Use default values
-      self.config = Config()
 
   def _detect_missing_query_terms(self):
     missing_count = 0
@@ -91,10 +84,6 @@ class BigQuerier:
     )
 
     self.webdriver = webdriver
-    self.querier = Querier(
-      self.webdriver,
-      use_config=self.config
-    )
 
     for index, query_object in enumerate(queries_data):
       status, results = self._begin_one(
@@ -137,8 +126,8 @@ class BigQuerier:
     self,
     index: int,
     query_object: dict
-  ):
-    #: 1. Check for missing query keyword
+  ) -> tuple[int, dict]:
+    #: Check for missing query keyword
     try:
       query = query_object[keys.QUERY]
     except KeyError:
@@ -159,9 +148,7 @@ class BigQuerier:
 
     #: Do query
     try:
-      results = self._query_one(
-        query
-      )
+      results = self._query_one(query)
     except Exception as e:
       self.errored_count = self.errored_count + 1
       self.errored_data.append(query_object)
@@ -178,10 +165,9 @@ class BigQuerier:
 
   def _query_one(
     self,
-    query: str
+    query_term: str
   ):
-    self.querier.begin(query)
-    result = self.querier.grab_results()
+    result = query.get(query_term, self.webdriver, self.config)
     return result.report()
   
   def postprocess(self):
@@ -196,7 +182,7 @@ class BigQuerier:
       process_data = processing.postproc.replace_newline(process_data)
     self._output_data = process_data
 
-  def autosave(self):    
+  def autosave(self):
     if self.outputs_count % self.config.fileio.autosave_every == 0:
       try:
         with open(self.autosave_filename, 'w', encoding='UTF-8') as json_file:

@@ -13,9 +13,9 @@ logger = logging.getLogger(__name__)
 
 class Results:
   def __init__(self):
-    self.metadata       = Metadata('', '', 0)
-    self._results       = []
-    self._results_count = 0
+    self.metadata = Metadata()
+    self.results  = []
+    self.count    = 0
   
   def from_html(
     self,
@@ -40,8 +40,8 @@ class Results:
       )
 
     #: Finalize
-    self._results = results
-    self._results_count = len(results)
+    self.results = results
+    self.count = len(results)
 
     logger.info(
       f'Processed results of query: "{self.metadata.query}"'
@@ -108,7 +108,8 @@ class Results:
       keys.QUERY               : self.metadata.query,
       keys.QUERY_LANG          : self.metadata.lang,
       keys.QUERY_TIMESTAMP     : self.metadata.timestamp,
-      keys.QUERY_RESULTS_COUNT : self.results_count,
+      keys.QUERY_STATUS        : self.metadata.status,
+      keys.QUERY_RESULTS_COUNT : self.count,
       keys.QUERY_RESULTS       : self.results
     }
 
@@ -119,13 +120,3 @@ class Results:
 
   def results_copy(self):
     return deepcopy(self._results)
-  
-  #: Properties are read-only
-  
-  @property
-  def results(self) -> list[dict]:
-    return self._results
-  
-  @property
-  def results_count(self) -> int:
-    return self._results_count
