@@ -3,7 +3,6 @@ import csv, json, logging
 
 from geoid.constants import keys
 from .metadata import Metadata
-from . import parsing
 
 logging.basicConfig(
   level=logging.INFO,
@@ -16,38 +15,6 @@ class Results:
     self.metadata = Metadata()
     self.results  = []
     self.count    = 0
-  
-  def from_html(
-    self,
-    grabbed_html: str
-  ):
-    logger.info(
-      f'Processing results of query: "{self.metadata.query}"'
-    )
-    
-    #: 1. Parse (before municipality data)
-    results = parsing.parse_html(grabbed_html, self.metadata)
-    
-    #: 2. Get municipality data
-    logger.info(
-      f'Getting municipality data: "{self.metadata.query}"'
-    )
-    results, errors = parsing.get_municipality_data(results)
-    
-    if errors > 0:     
-      logger.warning(
-        f'Could not pull municipality data of {str(errors)} entry(s)'
-      )
-
-    #: Finalize
-    self.results = results
-    self.count = len(results)
-
-    logger.info(
-      f'Processed results of query: "{self.metadata.query}"'
-    )
-
-    return self
     
   # def export_csv(
   #   self,
