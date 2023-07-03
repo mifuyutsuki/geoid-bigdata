@@ -13,6 +13,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def parse_html(grabbed_html: str, metadata: Metadata):
+  logger.info(
+    f'Processing results'
+  )
   results = []
   
   results_raw = BeautifulSoup(grabbed_html, 'lxml').select(cselectors.RESULT)
@@ -27,6 +30,9 @@ def parse_html(grabbed_html: str, metadata: Metadata):
   return results
 
 def get_municipality_data(results: list):
+  logger.info(
+    f'Getting municipality data'
+  )
   new_results = results.copy()
   errors = 0
 
@@ -38,4 +44,9 @@ def get_municipality_data(results: list):
       errors = errors + 1
       continue
   
-  return new_results, errors
+  if errors > 0:
+    logger.warning(
+      f'Could not pull municipality data of {str(errors)} entry(s)'
+    )
+  
+  return new_results

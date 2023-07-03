@@ -28,6 +28,9 @@ def get(
   config: Config
 ):
   #: Get query
+  logger.info(
+    f'Starting query: "{query}"'
+  )
   webdriver.get(
     links.GMAPS_QUERY_TARGET.format(
       query=quote_plus(query),
@@ -69,6 +72,9 @@ def scroll(
   webdriver: WebDriver,
   config: Config
 ):
+  logger.info(
+    f'Scrolling query'
+  )
   scrolls_remaining = config.query.depth - 1
   retries_remaining = config.query.scroll_retries
   scroll_status = SCROLL_FAILURE
@@ -104,11 +110,11 @@ def scroll(
   
   #: End of while loop, post debug log
   if scrolls_remaining == 0 and retries_remaining > 0:
-    logger.debug('Scroll - Completed (depth reached)')
+    logger.debug('Scroll completed (depth reached)')
   elif scrolls_remaining > 0 and retries_remaining == 0:
-    logger.debug('Scroll - Completed (out of scroll retries)')
+    logger.debug('Scroll completed (out of scroll retries)')
   else:
-    logger.debug('Scroll - Completed')
+    logger.debug('Scroll completed')
   
   return webdriver
 

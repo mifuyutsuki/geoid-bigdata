@@ -31,15 +31,9 @@ def get(
 
   try:
   #: 1
-    logger.info(
-      f'Starting query: "{query}"'
-    )
     webdriver = scraping.get(query, webdriver, config)
 
   #: 2
-    logger.info(
-      f'Scrolling query: "{query}"'
-    )
     webdriver = scraping.scroll(webdriver, config)
   
   except Exception as e:
@@ -51,21 +45,10 @@ def get(
   results_html = scraping.grab(webdriver)
   
   #: 4
-  logger.info(
-    f'Processing results of query: "{query}"'
-  )
   results_list = parsing.parse_html(results_html, results.metadata)
 
   #: 5
-  logger.info(
-    f'Getting municipality data: "{query}"'
-  )
-  results_list, municip_errors = parsing.get_municipality_data(results_list)
-
-  if municip_errors > 0:
-    logger.warning(
-      f'Could not pull municipality data of {str(municip_errors)} entry(s)'
-    )
+  results_list = parsing.get_municipality_data(results_list)
 
   results.results         = results_list
   results.count           = len(results_list)
