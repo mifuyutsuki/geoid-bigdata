@@ -9,7 +9,7 @@ logging.basicConfig(
   level=logging.INFO,
   format='[%(asctime)s] [%(name)s] %(levelname)s: %(message)s'
 )
-logger = logging.getLogger('Results')
+logger = logging.getLogger(__name__)
 
 class Results:
   def __init__(self):
@@ -17,15 +17,6 @@ class Results:
     self._results       = []
     self._results_count = 0
   
-  def set_metadata(
-    self,
-    query: str,
-    query_lang: str,
-    query_timestamp: int
-  ):
-    self.metadata = Metadata(query, query_lang, query_timestamp)
-    return self
-
   def from_html(
     self,
     grabbed_html: str

@@ -125,11 +125,9 @@ class Querier():
     )
 
     results_data = Results()
-    results_data.set_metadata(
-      self._query,
-      self.config.query.lang,
-      self._query_timestamp
-    )
+    results_data.metadata.query     = self._query
+    results_data.metadata.lang      = self.config.query.lang
+    results_data.metadata.timestamp = self._query_timestamp
     return results_data.from_html(grabbed_html)
 
   def _count_results(self):
