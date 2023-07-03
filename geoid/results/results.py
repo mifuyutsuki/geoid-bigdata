@@ -1,9 +1,9 @@
-from bs4 import BeautifulSoup
 from copy import deepcopy
 import csv, json, logging
 
-from .constants import cselectors, keys
-from . import processing
+from geoid.constants import keys
+from .metadata import Metadata
+from . import parsing
 
 logging.basicConfig(
   level=logging.INFO,
@@ -11,32 +11,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger('Results')
 
-class ResultsMetadata:
-  def __init__(
-    self,
-    query: str,
-    lang: str,
-    timestamp: int
-  ):
-    self._query     = query
-    self._lang      = lang
-    self._timestamp = timestamp
-  
-  @property
-  def query(self):
-    return self._query
-  
-  @property
-  def lang(self):
-    return self._lang
-  
-  @property
-  def timestamp(self):
-    return self._timestamp
-
 class Results:
   def __init__(self):
-    self.metadata       = ResultsMetadata('', '', 0)
+    self.metadata       = Metadata('', '', 0)
     self._results       = []
     self._results_count = 0
   
@@ -46,7 +23,7 @@ class Results:
     query_lang: str,
     query_timestamp: int
   ):
-    self.metadata = ResultsMetadata(query, query_lang, query_timestamp)
+    self.metadata = Metadata(query, query_lang, query_timestamp)
     return self
 
   def from_html(
@@ -56,38 +33,19 @@ class Results:
     logger.info(
       f'Processing results of query: "{self.metadata.query}"'
     )
-    results = []
     
-    #: 1. Parse
-    dump_soup = BeautifulSoup(grabbed_html, 'lxml')
-    results_raw = dump_soup.select(cselectors.RESULT)
-
-    for result_raw in results_raw:
-      if result_raw is not None:
-        result = processing.results.proc_entry(
-          result_raw, query_lang=self.metadata.lang
-        )
-        results.append(result)
+    #: 1. Parse (before municipality data)
+    results = parsing.parse_html(grabbed_html, self.metadata)
     
-    #: 2. Get Subdivision
+    #: 2. Get municipality data
     logger.info(
       f'Getting municipality data: "{self.metadata.query}"'
     )
-    process_error_count = 0
-    for result in results:
-      try:
-        result = processing.results.proc_municipality(result)
-      except Exception as e:
-        logger.error(str(e))
-        process_error_count = process_error_count + 1
-        continue
+    results, errors = parsing.get_municipality_data(results)
     
-    logger.info(
-      f'Got municipality data: "{self.metadata.query}"'
-    )
-    if process_error_count > 0:     
+    if errors > 0:     
       logger.warning(
-        f'Could not pull municipality data of {process_error_count} entry(s)'
+        f'Could not pull municipality data of {str(errors)} entry(s)'
       )
 
     #: Finalize
