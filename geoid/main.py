@@ -15,10 +15,7 @@ def begin(
   logging.config.dictConfig(LOG_CONFIG)
   logger = logging.getLogger('geoid')
 
-  if use_config is not None:
-    config = use_config
-  else:
-    config = Config()
+  config = use_config if use_config else Config()
 
   if config.fileio.use_timestamp_name:
     timestamp = time.strftime('%Y%m%d_%H%M%S')

@@ -1,8 +1,7 @@
 from unidecode import unidecode
-from copy import deepcopy
 import logging
 
-from ..constants import keys
+from geoid.constants import keys
 
 logging.basicConfig(
   level=logging.INFO,
@@ -19,14 +18,13 @@ def filter_by_city(data: list[dict]) -> list[dict]:
       target_city   = data_object[keys.CITY_NAME]
       query_results = data_object[keys.QUERY_RESULTS]
     except KeyError:
+      #: Ignore missing-data objects
       continue
     
     filtered_query_results = []
     for query_result in query_results:
       query_city = query_result[keys.CITY_NAME]
-      if (
-        target_city.strip().lower() == query_city.strip().lower()
-      ):
+      if target_city.strip().lower() == query_city.strip().lower():
         filtered_query_results.append(query_result.copy())
       else:
         filtered_count = filtered_count + 1
