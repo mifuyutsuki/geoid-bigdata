@@ -6,6 +6,7 @@ venv/
 # Test and temp files
 temp/
 tests/
+test_*
 
 # Logs
 *.log
