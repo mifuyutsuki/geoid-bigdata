@@ -4,7 +4,7 @@ from copy import deepcopy
 import logging
 
 from geoid.config import Config
-from geoid.constants import keys
+from geoid.constants import keys, status
 from geoid.query import query
 from . import io, processing
 
@@ -46,6 +46,10 @@ def get(
     #: 2.1
     if (data_object is None) or (keys.QUERY not in data_object):
       continue
+
+    if keys.QUERY_STATUS in data_object:
+      if data_object[keys.QUERY_STATUS] == status.QUERY_COMPLETE:
+        continue
     
     #: 2.2
     query_ = data_object[keys.QUERY]
