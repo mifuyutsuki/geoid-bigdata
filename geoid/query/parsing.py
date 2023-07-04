@@ -49,4 +49,4 @@ def get_municipality_data(results: list):
       f'Could not pull municipality data of {str(errors)} entry(s)'
     )
   
-  return new_results
+  return new_results, errors

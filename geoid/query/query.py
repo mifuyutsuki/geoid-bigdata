@@ -14,6 +14,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
 def get(
   query: str,
   webdriver: WebDriver,
@@ -33,25 +34,25 @@ def get(
   try:
   #: 1
     webdriver = scraping.get(query, webdriver, config)
-
-  #: 2
     webdriver = scraping.scroll(webdriver, config)
-  
   except Exception as e:
     logger.error(str(e))
     results.metadata.status = status.QUERY_ERRORED
     return results
   
-  #: 3
+  #: 2
   results_html = scraping.grab(webdriver)
-  
-  #: 4
   results_list = parsing.parse_html(results_html, results.metadata)
 
-  #: 5
-  results_list = parsing.get_municipality_data(results_list)
+  #: 3
+  results_list, municip_errors = parsing.get_municipality_data(results_list)
 
+  #: 4
   results.results         = results_list
   results.count           = len(results_list)
-  results.metadata.status = status.QUERY_COMPLETE
+  if municip_errors > 0:
+    results.metadata.status = status.QUERY_COMPLETE_MUNICIPALITIES_MISSING
+  else:
+    results.metadata.status = status.QUERY_COMPLETE
+
   return results
