@@ -24,6 +24,8 @@ def import_cities(
   data = processing.initialize(keyword, data)
   #: verify?
 
+  return data
+
 
 def get(
   data: list[dict],
@@ -48,15 +50,19 @@ def get(
       continue
 
     if keys.QUERY_STATUS in data_object:
-      if data_object[keys.QUERY_STATUS] == status.QUERY_COMPLETE:
-        continue
+      query_status = data_object[keys.QUERY_STATUS]
+    else:
+      query_status = status.QUERY_INCOMPLETE
+      
+    if query_status == status.QUERY_COMPLETE:
+      continue
     
     #: 2.2
     query_ = data_object[keys.QUERY]
     results = query.get(query_, webdriver, use_config=config)
 
     #: 2.3
-    if results.metadata.status == results.metadata.STATUS_COMPLETE:
+    if results.metadata.status == status.QUERY_COMPLETE:
       completeds = completeds + 1
       data_object.update(results.report())
     
