@@ -27,6 +27,43 @@ def import_cities(
   return data
 
 
+def get_one(
+  data_object: dict,
+  webdriver: WebDriver,
+  config: Config
+):
+  new_object = data_object.copy()
+
+  #: 1
+  if (new_object is None) or (keys.QUERY not in new_object):
+    new_object[keys.QUERY_STATUS] = status.QUERY_MISSING
+    return new_object, status.QUERY_MISSING
+
+  if keys.QUERY_STATUS in new_object:
+    query_status = new_object[keys.QUERY_STATUS]
+  else:
+    query_status = status.QUERY_INCOMPLETE
+    
+  if query_status == status.QUERY_COMPLETE:
+    new_object[keys.QUERY_STATUS] = status.QUERY_COMPLETE
+    return new_object, status.QUERY_COMPLETE
+  
+  #: 2
+  query_ = new_object[keys.QUERY]
+  results = query.get(query_, webdriver, use_config=config)
+  query_status = results.metadata.status
+
+  #: 3
+  if query_status == status.QUERY_COMPLETE or \
+  query_status == status.QUERY_COMPLETE_MUNICIPALITIES_MISSING:
+    new_object.update(results.report())
+  else:
+    new_object = new_object
+  
+  new_object[keys.QUERY_STATUS] = results.metadata.status
+  return new_object, query_status
+
+
 def get(
   data: list[dict],
   webdriver: WebDriver,
