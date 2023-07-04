@@ -1,0 +1,4 @@
+#: Query status
+QUERY_INCOMPLETE = 0
+QUERY_COMPLETE   = 1
+QUERY_ERRORED    = 2
