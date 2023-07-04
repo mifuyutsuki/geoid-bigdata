@@ -6,6 +6,7 @@ import logging
 from . import scraping, parsing
 from .results import Results
 from geoid.config import Config
+from geoid.constants import status
 
 logging.basicConfig(
   level=logging.INFO,
@@ -24,7 +25,7 @@ def get(
   config = use_config if use_config else Config()
   
   results = Results()
-  results.metadata.status    = results.metadata.STATUS_INCOMPLETE
+  results.metadata.status    = status.QUERY_INCOMPLETE
   results.metadata.query     = query
   results.metadata.lang      = config.query.lang
   results.metadata.timestamp = int(time())
@@ -38,7 +39,7 @@ def get(
   
   except Exception as e:
     logger.error(str(e))
-    results.metadata.status = results.metadata.STATUS_ERRORED
+    results.metadata.status = status.QUERY_ERRORED
     return results
   
   #: 3
@@ -52,5 +53,5 @@ def get(
 
   results.results         = results_list
   results.count           = len(results_list)
-  results.metadata.status = results.metadata.STATUS_COMPLETE
+  results.metadata.status = status.QUERY_COMPLETE
   return results
