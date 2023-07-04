@@ -15,13 +15,14 @@ def initialize(keyword: str, data: list[dict]) -> list[dict]:
   new_data = deepcopy(data)
   missings = 0
 
-  for data_object in new_data:
+  for index, data_object in enumerate(new_data):
     if keys.QUERY_TERM not in data_object:
       missings = missings + 1
       continue
 
     data_object = initialize_object(data_object)
     data_object[keys.QUERY] = f"{keyword} {data_object[keys.QUERY_TERM]}"
+    new_data[index] = data_object
   
   if missings > 0:
     logger.warning(
