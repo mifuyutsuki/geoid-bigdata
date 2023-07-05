@@ -32,7 +32,7 @@ class BigQuery:
 
     self.data    = data
     self.count   = len(data)
-    self.querier = self._get_one_iter(self.webdriver)
+    self.querier = None
 
 
   def import_save(
@@ -44,7 +44,7 @@ class BigQuery:
 
     self.data    = data
     self.count   = len(data)
-    self.querier = self._get_one_iter(self.webdriver)
+    self.querier = None
   
 
   def export_json(
@@ -77,7 +77,7 @@ class BigQuery:
 
   def initialize(self, webdriver: WebDriver):
     self.webdriver = webdriver
-    self.querier   = self._get_one_iter(webdriver)
+    self.querier   = self._get_one_iter()
 
 
   def get_one(self):
