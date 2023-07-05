@@ -4,7 +4,7 @@ from copy import deepcopy
 import logging
 
 from geoid.config import Config
-from geoid.constants import keys, status
+from geoid.constants import Keys, Status
 from geoid.query import query
 from . import io, processing
 
@@ -35,33 +35,27 @@ def get_one(
   new_object = data_object.copy()
 
   #: 1
-  if (new_object is None) or (keys.QUERY not in new_object):
-    new_object[keys.QUERY_STATUS] = status.QUERY_MISSING
-    return new_object, status.QUERY_MISSING
+  if new_object is None:
+    return new_object, Status.QUERY_MISSING
+  
+  if Keys.QUERY not in new_object:
+    return new_object, Status.QUERY_MISSING
 
-  if keys.QUERY_STATUS in new_object:
-    query_status = new_object[keys.QUERY_STATUS]
-  else:
-    query_status = status.QUERY_INCOMPLETE
+  if Keys.QUERY_STATUS not in new_object:
+    new_object[Keys.QUERY_STATUS] = Status.QUERY_INCOMPLETE
     
-  if query_status == status.QUERY_COMPLETE:
-    new_object[keys.QUERY_STATUS] = status.QUERY_COMPLETE
-    return new_object, status.QUERY_COMPLETE
-  
-  #: 2
-  query_ = new_object[keys.QUERY]
-  results = query.get(query_, webdriver, use_config=config)
-  query_status = results.metadata.status
+  query_status = new_object[Keys.QUERY_STATUS]
 
-  #: 3
-  if query_status == status.QUERY_COMPLETE or \
-  query_status == status.QUERY_COMPLETE_MUNICIPALITIES_MISSING:
-    new_object.update(results.report())
-  else:
-    new_object = new_object
+  #: 2  
+  if query_status == Status.QUERY_COMPLETE:
+    return new_object, Status.QUERY_COMPLETE
   
-  new_object[keys.QUERY_STATUS] = results.metadata.status
-  return new_object, query_status
+  #: 3
+  query_ = new_object[Keys.QUERY]
+  results = query.get(query_, webdriver, use_config=config)
+  new_object.update(results.report())
+  
+  return new_object, results.metadata.status
 
 
 def get(
@@ -83,23 +77,23 @@ def get(
 
   for index, data_object in enumerate(new_data):
     #: 2.1
-    if (data_object is None) or (keys.QUERY not in data_object):
+    if (data_object is None) or (Keys.QUERY not in data_object):
       continue
 
-    if keys.QUERY_STATUS in data_object:
-      query_status = data_object[keys.QUERY_STATUS]
+    if Keys.QUERY_STATUS in data_object:
+      query_status = data_object[Keys.QUERY_STATUS]
     else:
-      query_status = status.QUERY_INCOMPLETE
+      query_status = Status.QUERY_INCOMPLETE
       
-    if query_status == status.QUERY_COMPLETE:
+    if query_status == Status.QUERY_COMPLETE:
       continue
     
     #: 2.2
-    query_ = data_object[keys.QUERY]
+    query_ = data_object[Keys.QUERY]
     results = query.get(query_, webdriver, use_config=config)
 
     #: 2.3
-    if results.metadata.status == status.QUERY_COMPLETE:
+    if results.metadata.status == Status.QUERY_COMPLETE:
       completeds = completeds + 1
       data_object.update(results.report())
     
