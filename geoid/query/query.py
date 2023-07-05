@@ -28,8 +28,11 @@ def get(
   results.metadata.lang      = config.query.lang
   results.metadata.timestamp = int(time())
 
+  #: Each try block represents a different process, which will output
+  #: different line numbers in logs.
+
   try:
-  #: 1
+  #: 1 - Scraping
     webdriver = scraping.get(query, webdriver, config)
     webdriver = scraping.scroll(webdriver, config)
   except Exception as e:
@@ -37,14 +40,26 @@ def get(
     results.metadata.status = Status.QUERY_ERRORED
     return results
   
-  #: 2
-  results_html = scraping.grab(webdriver)
-  results_list = parsing.parse_html(results_html, results.metadata)
+  try:
+  #: 2 - Parsing
+    results_html = scraping.grab(webdriver)
+    results_list = parsing.parse_html(results_html, results.metadata)
+  except Exception as e:
+    logger.error(str(e))
+    results.metadata.status = Status.QUERY_ERRORED
+    return results
 
-  #: 3
-  results_list, municip_errors = parsing.get_municipality_data(results_list)
-
-  #: 4
+  try:
+  #: 3 - Municipality data
+    results_list, municip_errors = parsing.get_municipality_data(results_list)
+  except Exception as e:
+    #: Note: Errors from acquiring individual municipality data are stored as
+    #: error counts in municip_errors instead.
+    logger.error(str(e))
+    results.metadata.status = Status.QUERY_ERRORED
+    return results
+  
+  #: 4 - Output
   results.results         = results_list
   results.count           = len(results_list)
   if municip_errors > 0:
