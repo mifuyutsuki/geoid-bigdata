@@ -43,6 +43,10 @@ class BigQuery:
     self.count           = len(data)
     self.querier         = None
 
+    logger.info(
+      f'Imported cities data JSON from "{source_filename}"'
+    )
+
 
   def import_save(
     self,
@@ -55,7 +59,10 @@ class BigQuery:
     self.data            = data
     self.count           = len(data)
     self.querier         = None
-  
+    
+    logger.info(
+      f'Imported save data JSON from "{source_filename}"'
+    )
 
   def export_json(
     self,
@@ -96,6 +103,10 @@ class BigQuery:
     io.export_json(
       target_filename, export_data, indent=indent, **json_kwargs
     )
+    
+    logger.info(
+      f'Exported queries data JSON to "{target_filename}"'
+    )
 
 
   def autosave(self):
@@ -105,6 +116,10 @@ class BigQuery:
     
     io.export_json(
       autosave_filename, self.data, self.config.fileio.output_indent
+    )
+    
+    logger.info(
+      f'Autosaved queries data JSON to "{autosave_filename}"'
     )
 
 
@@ -120,6 +135,9 @@ class BigQuery:
         'BigQuery must be initialized with initialize() to begin querying'
       )
     
+    logger.info(
+      f'Query progress: ({str(self._progress)}/{str(self.count)})'
+    )
     query_status   = next(self.querier)
     autosave_every = self.config.fileio.autosave_every
 
