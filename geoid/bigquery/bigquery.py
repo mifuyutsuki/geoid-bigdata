@@ -3,9 +3,10 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from copy import deepcopy
 import logging
 
+from geoid.common import io
 from geoid.config import Config
 from geoid.processing import postproc
-from . import io, processing, query
+from . import processing, query
 
 
 logger = logging.getLogger(__name__)
