@@ -35,6 +35,15 @@ def get(
     )
   )
 
+  #: Detect CAPTCHA box
+  if len(webdriver.find_elements(
+    By.CSS_SELECTOR, Selectors.RECAPTCHA
+  )) > 0:
+    logger.error(
+      'Failed to load page (CAPTCHA)'
+    )
+    raise RuntimeError('Failed to load page: CAPTCHA')
+
   #: Ensure page is sufficiently loaded
   try:
     WebDriverWait(
@@ -46,7 +55,7 @@ def get(
     )
   except TimeoutException:
     logger.error(
-      'Failed to sufficiently load page (timed out)'
+      'Failed to load page (timed out)'
     )
     raise
 
