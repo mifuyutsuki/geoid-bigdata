@@ -3,11 +3,11 @@ from urllib.parse import quote_plus
 import requests
 import re
 
-from ..constants import Selectors, links
+from geoid.constants import Selectors, Links
 
 def get_municipality_data(latitude, longitude):
   request = requests.get(
-    links.MUNICIPALITY_QUERY_TARGET.format(
+    Links.MUNICIPALITY_QUERY_TARGET.format(
       latitude=str(latitude), longitude=str(longitude)
     ),
     timeout=(3.5, 5.0)

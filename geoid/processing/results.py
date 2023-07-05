@@ -1,6 +1,6 @@
 from bs4 import Tag
 
-from ..constants import Keys
+from geoid.constants import Keys
 from . import fields
 
 def proc_entry(entry: Tag, query_lang='id') -> dict:

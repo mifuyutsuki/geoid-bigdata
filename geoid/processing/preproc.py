@@ -1,7 +1,7 @@
 import logging
 from copy import deepcopy
 
-from ..constants import Keys
+from geoid.constants import Keys
 
 logging.basicConfig(
   level=logging.INFO,
