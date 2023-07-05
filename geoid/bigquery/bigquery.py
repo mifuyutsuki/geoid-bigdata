@@ -6,6 +6,7 @@ import logging
 from geoid.common import io
 from geoid.config import Config
 from geoid.processing import postproc
+from geoid.constants import Status
 from . import processing, query
 
 
@@ -17,9 +18,15 @@ class BigQuery:
     self.webdriver = None
     self.config    = use_config if use_config else Config()
 
+    self.source_filename   = None
+    self.target_filename   = None
+    self.autosave_filename = None
+
     self.data    = None
     self.count   = 0
     self.querier = None
+
+    self._progress = 0
   
 
   def import_cities(
@@ -31,9 +38,10 @@ class BigQuery:
     data = processing.initialize(keyword, data)
     #: verify?
 
-    self.data    = data
-    self.count   = len(data)
-    self.querier = None
+    self.source_filename = source_filename
+    self.data            = data
+    self.count           = len(data)
+    self.querier         = None
 
 
   def import_save(
@@ -43,25 +51,41 @@ class BigQuery:
     data = io.import_json(source_filename)
     #: verify?
 
-    self.data    = data
-    self.count   = len(data)
-    self.querier = None
+    self.source_filename = source_filename
+    self.data            = data
+    self.count           = len(data)
+    self.querier         = None
   
 
   def export_json(
     self,
-    target_filename: str,
+    target_filename=None,
     *,
-    filter_by_city=False,
-    flatten=False,
-    convert_ascii=False,
-    replace_newline=False,
-    indent=1,
+    filter_by_city=None,
+    flatten=None,
+    convert_ascii=None,
+    replace_newline=None,
+    indent=None,
     **json_kwargs
   ):
     if self.data is None:
       return
     
+    if target_filename is None : target_filename = self.target_filename
+    if filter_by_city is None  : filter_by_city  = self.config.postproc.filter
+    if flatten is None         : flatten         = self.config.postproc.flatten
+    if convert_ascii is None   : convert_ascii   = self.config.postproc.convert_ascii
+    if replace_newline is None : replace_newline = self.config.postproc.replace_newline
+    if indent is None          : indent          = self.config.fileio.output_indent
+
+    if not isinstance(target_filename, str):
+      raise ValueError(f'Invalid filename of type "{str(type(target_filename))}"')
+    if not isinstance(indent, int):
+      raise ValueError(f'Invalid indent value of type "{str(type(indent))}"')
+
+    if len(target_filename) <= 0:
+      raise ValueError(f'Invalid filename of "{target_filename}"')
+
     export_data = deepcopy(self.data)
 
     if filter_by_city  : export_data = postproc.filter_by_city(export_data)
@@ -69,16 +93,25 @@ class BigQuery:
     if convert_ascii   : export_data = postproc.convert_ascii(export_data)
     if replace_newline : export_data = postproc.replace_newline(export_data)
 
-    io.export_json(target_filename, export_data, indent=indent, **json_kwargs)
+    io.export_json(
+      target_filename, export_data, indent=indent, **json_kwargs
+    )
 
 
   def autosave(self):
-    io.export_json(self.config.fileio.autosave_filename, self.data)
+    autosave_filename = self.autosave_filename
+    if len(autosave_filename) <= 0:
+      raise ValueError(f'Unspecified autosave filename of "{autosave_filename}"')
+    
+    io.export_json(
+      autosave_filename, self.data, self.config.fileio.output_indent
+    )
 
 
   def initialize(self, webdriver: WebDriver):
     self.webdriver = webdriver
     self.querier   = self._get_one_iter()
+    self._progress = 0
 
 
   def get_one(self):
@@ -86,7 +119,17 @@ class BigQuery:
       raise RuntimeError(
         'BigQuery must be initialized with initialize() to begin querying'
       )
-    return next(self.querier)
+    
+    query_status   = next(self.querier)
+    autosave_every = self.config.fileio.autosave_every
+
+    if query_status == Status.QUERY_COMPLETE or \
+    query_status == Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING:
+      self._progress = self._progress + 1
+      if self._progress % autosave_every == 0:
+        self.autosave()
+    
+    return query_status
 
 
   def _get_one_iter(self):
@@ -100,4 +143,3 @@ class BigQuery:
         self.data[index] = new_object
       
       yield query_status
-      
