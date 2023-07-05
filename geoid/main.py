@@ -6,6 +6,8 @@ from geoid.config import Config
 from geoid.logging import LOG_CONFIG
 import logging, logging.config, time
 
+logger = logging.getLogger(__name__)
+
 def init_webclient(config: Config):
   use_client  = config.webclient.webclient.lower().strip()
   show_client = config.webclient.show
@@ -20,6 +22,20 @@ def init_webclient(config: Config):
 
   return driver
 
+
+def get_all(querier: BigQuery):
+  while True:
+    try:
+      querier.get_one()
+    except StopIteration:
+      break
+    except Exception as e:
+      logger.error(str(e))
+      continue
+  
+  return querier
+
+
 def begin(
   keyword: str,
   source_file: str,
@@ -28,7 +44,6 @@ def begin(
   use_config:Config=None
 ):
   logging.config.dictConfig(LOG_CONFIG)
-  logger = logging.getLogger(__name__)
 
   config = use_config if use_config else Config()
 
@@ -58,17 +73,11 @@ def begin(
   else:
     logger.info('Initialized web client')
 
-  while True:
-    try:
-      querier.get_one()
-    except StopIteration:
-      break
-    except Exception as e:
-      logger.error(str(e))
-      continue
-
-  logger.info('Terminating web client')
-  driver.quit()
-  logger.info('Terminated web client')
+  try:
+    querier = get_all(querier)
+  finally:
+    logger.info('Terminating web client')
+    driver.quit()
+    logger.info('Terminated web client')
 
   querier.export_json(output_file)
