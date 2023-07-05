@@ -26,7 +26,8 @@ class BigQuery:
     self.count   = 0
     self.querier = None
 
-    self._progress = 0
+    self._progress   = 1
+    self._completeds = 0
   
 
   def import_cities(
@@ -126,7 +127,7 @@ class BigQuery:
   def initialize(self, webdriver: WebDriver):
     self.webdriver = webdriver
     self.querier   = self._get_one_iter()
-    self._progress = 0
+    self._progress = 1
 
 
   def get_one(self):
@@ -139,12 +140,18 @@ class BigQuery:
       f'Query progress: ({str(self._progress)}/{str(self.count)})'
     )
     query_status   = next(self.querier)
-    autosave_every = self.config.fileio.autosave_every
+    self._progress = self._progress + 1
+
+    if query_status == Status.QUERY_MISSING:
+      logger.warning(
+        f'Query object {str(self._progress)}/{str(self.count)} skipped '
+        f'due to missing query'
+      )
 
     if query_status == Status.QUERY_COMPLETE or \
     query_status == Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING:
-      self._progress = self._progress + 1
-      if self._progress % autosave_every == 0:
+      self._completeds = self._completeds + 1
+      if self._completeds % self.config.fileio.autosave_every == 0:
         self.autosave()
     
     return query_status
