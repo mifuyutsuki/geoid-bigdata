@@ -1,7 +1,7 @@
 import logging
 from copy import deepcopy
 
-from geoid.constants import Keys, status
+from geoid.constants import Keys, Status
 
 
 logging.basicConfig(
@@ -38,7 +38,7 @@ def initialize_object(data_object: dict) -> dict:
   new_object[Keys.QUERY]               = None
   new_object[Keys.QUERY_LANG]          = ''
   new_object[Keys.QUERY_TIMESTAMP]     = 0
-  new_object[Keys.QUERY_STATUS]        = status.QUERY_INCOMPLETE
+  new_object[Keys.QUERY_STATUS]        = Status.QUERY_INCOMPLETE
   new_object[Keys.QUERY_RESULTS_COUNT] = 0
   new_object[Keys.QUERY_RESULTS]       = []
   return new_object

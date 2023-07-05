@@ -9,7 +9,7 @@ import logging
 
 from .results import Results
 from geoid.config import Config
-from geoid.constants import Selectors, links
+from geoid.constants import Selectors, Links
 
 logging.basicConfig(
   level=logging.INFO,
@@ -32,7 +32,7 @@ def get(
     f'Starting query: "{query}"'
   )
   webdriver.get(
-    links.GMAPS_QUERY_TARGET.format(
+    Links.GMAPS_QUERY_TARGET.format(
       query=quote_plus(query),
       query_lang=quote_plus(config.query.lang)
     )
