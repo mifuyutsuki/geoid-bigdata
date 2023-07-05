@@ -6,7 +6,7 @@ import logging
 from . import scraping, parsing
 from .results import Results
 from geoid.config import Config
-from geoid.constants import Status
+from geoid.constants import Status, Keys
 
 logging.basicConfig(
   level=logging.INFO,
@@ -54,5 +54,17 @@ def get(
     results.metadata.status = Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING
   else:
     results.metadata.status = Status.QUERY_COMPLETE
+
+  return results
+
+
+def get_saved(data_object: dict):
+  results = Results()
+  results.metadata.status    = data_object[Keys.QUERY_STATUS]
+  results.metadata.query     = data_object[Keys.QUERY]
+  results.metadata.lang      = data_object[Keys.QUERY_LANG]
+  results.metadata.timestamp = data_object[Keys.QUERY_TIMESTAMP]
+  results.results            = data_object[Keys.QUERY_RESULTS]
+  results.count              = data_object[Keys.QUERY_RESULTS_COUNT]
 
   return results
