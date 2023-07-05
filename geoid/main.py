@@ -1,9 +1,24 @@
-from selenium import webdriver
 from selenium.common.exceptions import *
-from . import BigQuerier
-from .config import Config
-from .logging import LOG_CONFIG
+
+from geoid.bigquery import BigQuery
+from geoid.common import webclient
+from geoid.config import Config
+from geoid.logging import LOG_CONFIG
 import logging, logging.config, time
+
+def init_webclient(config: Config):
+  use_client  = config.webclient.webclient.lower().strip()
+  show_client = config.webclient.show
+  if use_client == 'firefox':
+    driver = webclient.init_firefox(show_client=show_client)
+  elif use_client == 'chrome':
+    driver = webclient.init_chrome(show_client=show_client)
+  else:
+    raise ValueError(
+      f'Webclient "{use_client}" is unsupported or does not exist'
+    )
+
+  return driver
 
 def begin(
   keyword: str,
@@ -13,7 +28,7 @@ def begin(
   use_config:Config=None
 ):
   logging.config.dictConfig(LOG_CONFIG)
-  logger = logging.getLogger('geoid')
+  logger = logging.getLogger(__name__)
 
   config = use_config if use_config else Config()
 
@@ -21,35 +36,32 @@ def begin(
     timestamp = time.strftime('%Y%m%d_%H%M%S')
     output_file = output_file.replace("{timestamp}", timestamp)
 
-  querier = BigQuerier(
-    source_file,
-    output_file,
-    use_config=config
-  )
+  querier = BigQuery(config)
+  querier.target_filename   = output_file
+  querier.autosave_filename = output_file + '.autosave'
 
-  logger.info('Initializing webdriver')
+  querier.import_cities(source_file, keyword)
+
+  logger.info('Initializing web client')
   try:
-    driver = _initialize_driver(
-      config.webclient.webclient,
-      show_client=config.webclient.show
-    )
+    driver = init_webclient(config)
+    querier.initialize(driver)
   except WebDriverException as e:
     logger.exception(e)
     logger.error(
-      'Unable to initialize webdriver'
+      'Unable to initialize web client'
     )
     quit()
   except Exception as e:
     logger.exception(e)
     quit()
   else:
-    logger.info('Initialized webdriver')
+    logger.info('Initialized web client')
 
   try:
-    querier.begin(
-      driver,
-      keyword
-    )
+    querier.get_one()
+  except StopIteration:
+    pass
   except Exception as e:
     logger.error(str(e))
     raise
@@ -58,26 +70,4 @@ def begin(
     driver.quit()
     logger.info('Terminated webdriver')
 
-  if querier.outputs_count <= 0:
-    logger.info('No query results to process further')
-  else:
-    querier.postprocess()
-    querier.export_json(indent=config.fileio.output_indent)
-
-def _initialize_driver(webclient: str, *, show_client=False):
-  if webclient.lower() == 'firefox':
-    options = webdriver.FirefoxOptions()
-    if not show_client:
-      options.add_argument('-headless')
-    driver = webdriver.Firefox(options=options)
-  
-  elif webclient.lower() == 'chrome':
-    options = webdriver.ChromeOptions()
-    if not show_client:
-      options.add_argument('--headless=new')
-    driver = webdriver.Chrome(options=options)
-  
-  else:
-    raise ValueError(f'Invalid or unsupported web client: {webclient}')
-
-  return driver
+  querier.export_json(output_file)
