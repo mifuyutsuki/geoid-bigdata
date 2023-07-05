@@ -1,5 +1,6 @@
 import argparse
-from geoid import begin, __version__
+from geoid import __version__
+from geoid.main import begin
 from geoid.config import Config
 
 parser = argparse.ArgumentParser(
@@ -118,7 +119,7 @@ def main():
       quit()
   
   config = Config()
-  config.query.depth    = args.depth
+  config.query.depth               = args.depth
   config.fileio.output_indent      = args.indent
   config.webclient.webclient       = args.browser
   config.webclient.show            = args.show
