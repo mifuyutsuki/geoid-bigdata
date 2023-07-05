@@ -4,10 +4,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
 from urllib.parse import quote_plus
-from time import time, sleep
+from time import sleep
 import logging
 
-from .results import Results
 from geoid.config import Config
 from geoid.constants import Selectors, Links
 
