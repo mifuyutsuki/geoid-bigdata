@@ -20,3 +20,6 @@ class Selectors:
   DESCRIPTION_FIELD   = '.W4Efsd.W4Efsd'
   LOCATION_LINK_FIELD = 'a[href]'
   IMAGE_LINK_FIELD    = 'img[src]'
+
+  #: Other selectors
+  RECAPTCHA           = 'iframe[src][title="reCAPTCHA"]'
