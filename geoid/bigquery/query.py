@@ -1,12 +1,12 @@
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from copy import deepcopy
 import logging
 
+from geoid.common import io
 from geoid.config import Config
 from geoid.constants import Keys, Status
 from geoid.query import query
-from . import io, processing
+from . import processing
 
 
 logging.basicConfig(
