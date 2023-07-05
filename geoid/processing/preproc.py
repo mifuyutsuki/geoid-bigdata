@@ -1,7 +1,7 @@
 import logging
 from copy import deepcopy
 
-from ..constants import keys
+from ..constants import Keys
 
 logging.basicConfig(
   level=logging.INFO,
@@ -17,10 +17,10 @@ def preproc_queries(
 
   for data_object in output_data:
     try:
-      data_object[keys.QUERY_TERM]
+      data_object[Keys.QUERY_TERM]
     except KeyError:
       continue
 
-    data_object[keys.QUERY] = f"{keyword} {data_object[keys.QUERY_TERM]}"
+    data_object[Keys.QUERY] = f"{keyword} {data_object[Keys.QUERY_TERM]}"
   
   return output_data

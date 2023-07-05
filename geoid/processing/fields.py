@@ -3,7 +3,7 @@ from urllib.parse import quote_plus
 import requests
 import re
 
-from ..constants import cselectors, links
+from ..constants import Selectors, links
 
 def get_municipality_data(latitude, longitude):
   request = requests.get(
@@ -48,7 +48,7 @@ def get_village_id(code) -> str:
   return field
 
 def get_location_name(entry: Tag) -> str:
-  field_selection = entry.select_one(cselectors.LOCATION_NAME_FIELD)
+  field_selection = entry.select_one(Selectors.LOCATION_NAME_FIELD)
 
   if field_selection is not None:
     field = field_selection.string
@@ -57,7 +57,7 @@ def get_location_name(entry: Tag) -> str:
   return field
 
 def get_location_type(entry: Tag) -> str:
-  field_selection = entry.select_one(cselectors.LOCATION_TYPE_FIELD)
+  field_selection = entry.select_one(Selectors.LOCATION_TYPE_FIELD)
 
   if field_selection is not None:
     field = field_selection.string
@@ -66,7 +66,7 @@ def get_location_type(entry: Tag) -> str:
   return field
     
 def get_latitude(entry: Tag) -> str:
-  field_selection = entry.select_one(cselectors.LATITUDE_FIELD)
+  field_selection = entry.select_one(Selectors.LATITUDE_FIELD)
 
   if field_selection is not None:
     field = field_selection['href']
@@ -79,7 +79,7 @@ def get_latitude(entry: Tag) -> str:
   return field
     
 def get_longitude(entry: Tag) -> str:
-  field_selection = entry.select_one(cselectors.LONGITUDE_FIELD)
+  field_selection = entry.select_one(Selectors.LONGITUDE_FIELD)
 
   if field_selection is not None:
     field = field_selection['href']
@@ -94,7 +94,7 @@ def get_longitude(entry: Tag) -> str:
 def get_rating(entry: Tag) -> str:
   # Rating is of the form 4.8 or 4,8
   # -> Account for decimal comma
-  field_selection = entry.select_one(cselectors.RATING_FIELD)
+  field_selection = entry.select_one(Selectors.RATING_FIELD)
 
   if field_selection is not None:
     field = field_selection.string
@@ -106,7 +106,7 @@ def get_rating(entry: Tag) -> str:
 def get_reviews(entry: Tag) -> str:
   # Review count is of the form (11,111) or (11.111)
   # -> Ignore non-numbers
-  field_selection = entry.select_one(cselectors.REVIEWS_FIELD)
+  field_selection = entry.select_one(Selectors.REVIEWS_FIELD)
 
   if field_selection is not None:
     field = field_selection.string
@@ -119,7 +119,7 @@ def get_description(entry: Tag) -> str:
   #: Description is of the form [" ", " ", " ", " "]
   #: -> Join same-line blocks with whitespace
   #: -> Join different lines with newline
-  field_selections = entry.select(cselectors.DESCRIPTION_FIELD)
+  field_selections = entry.select(Selectors.DESCRIPTION_FIELD)
 
   field_lines = []
   for index, selection in enumerate(field_selections):
@@ -133,7 +133,7 @@ def get_description(entry: Tag) -> str:
 def get_location_link(entry: Tag, query_lang: str) -> str:
   #: The section after '?' grabbed from the fields can be dropped
   #: However, keep the host query_lang query (from caller)
-  field_selection = entry.select_one(cselectors.LOCATION_LINK_FIELD)
+  field_selection = entry.select_one(Selectors.LOCATION_LINK_FIELD)
 
   if field_selection is not None:
     field = field_selection['href'].rsplit('?')[0] + f'?hl={quote_plus(query_lang)}'
@@ -143,7 +143,7 @@ def get_location_link(entry: Tag, query_lang: str) -> str:
 
 def get_image_link(entry: Tag) -> str:
   #: Stripping the section after '=' yields the original size img
-  field_selection = entry.select_one(cselectors.IMAGE_LINK_FIELD)
+  field_selection = entry.select_one(Selectors.IMAGE_LINK_FIELD)
 
   if field_selection is not None:
     field = field_selection['src'].rsplit('=')[0]

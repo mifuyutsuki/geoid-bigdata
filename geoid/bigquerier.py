@@ -3,7 +3,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 import json, logging, os
 
 from .config import Config
-from .constants import keys
+from .constants import Keys
 from . import query, processing
 
 logging.basicConfig(
@@ -58,7 +58,7 @@ class BigQuerier:
     missing_count = 0
     for input_object in self._input_data:
       try:
-        input_object[keys.QUERY_TERM]
+        input_object[Keys.QUERY_TERM]
       except KeyError:
         missing_count = missing_count + 1
         continue
@@ -129,7 +129,7 @@ class BigQuerier:
   ) -> tuple[int, dict]:
     #: Check for missing query keyword
     try:
-      query = query_object[keys.QUERY]
+      query = query_object[Keys.QUERY]
     except KeyError:
       self.missing_data.append(query_object)
       logger.info(

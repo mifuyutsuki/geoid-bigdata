@@ -1,7 +1,7 @@
 from unidecode import unidecode
 import logging
 
-from geoid.constants import keys
+from geoid.constants import Keys
 
 logging.basicConfig(
   level=logging.INFO,
@@ -15,22 +15,22 @@ def filter_by_city(data: list[dict]) -> list[dict]:
 
   for data_object in filtered_data:
     try:
-      target_city   = data_object[keys.CITY_NAME]
-      query_results = data_object[keys.QUERY_RESULTS]
+      target_city   = data_object[Keys.CITY_NAME]
+      query_results = data_object[Keys.QUERY_RESULTS]
     except KeyError:
       #: Ignore missing-data objects
       continue
     
     filtered_query_results = []
     for query_result in query_results:
-      query_city = query_result[keys.CITY_NAME]
+      query_city = query_result[Keys.CITY_NAME]
       if target_city.strip().lower() == query_city.strip().lower():
         filtered_query_results.append(query_result.copy())
       else:
         filtered_count = filtered_count + 1
       
-    data_object[keys.QUERY_RESULTS] = filtered_query_results
-    data_object[keys.QUERY_RESULTS_COUNT] = len(filtered_query_results)
+    data_object[Keys.QUERY_RESULTS] = filtered_query_results
+    data_object[Keys.QUERY_RESULTS_COUNT] = len(filtered_query_results)
 
   logger.info(
     f'Removed {str(filtered_count)} result(s) '
@@ -43,7 +43,7 @@ def convert_flat(data: list[dict]) -> list[dict]:
 
   for query_object in data:
     try:
-      query_results = query_object[keys.QUERY_RESULTS]
+      query_results = query_object[Keys.QUERY_RESULTS]
     except KeyError:
       continue
     
@@ -51,7 +51,7 @@ def convert_flat(data: list[dict]) -> list[dict]:
     for key in query_object.keys():
       #: Whitelist only query information keys
       if key in (
-        keys.QUERY_TERM, keys.QUERY, keys.QUERY_LANG, keys.QUERY_TIMESTAMP
+        Keys.QUERY_TERM, Keys.QUERY, Keys.QUERY_LANG, Keys.QUERY_TIMESTAMP
       ):
         head_object[key] = query_object[key]
 

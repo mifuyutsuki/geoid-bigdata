@@ -1,7 +1,7 @@
 import logging
 from copy import deepcopy
 
-from geoid.constants import keys, status
+from geoid.constants import Keys, status
 
 
 logging.basicConfig(
@@ -16,12 +16,12 @@ def initialize(keyword: str, data: list[dict]) -> list[dict]:
   missings = 0
 
   for index, data_object in enumerate(new_data):
-    if keys.QUERY_TERM not in data_object:
+    if Keys.QUERY_TERM not in data_object:
       missings = missings + 1
       continue
 
     data_object = initialize_object(data_object)
-    data_object[keys.QUERY] = f"{keyword} {data_object[keys.QUERY_TERM]}"
+    data_object[Keys.QUERY] = f"{keyword} {data_object[Keys.QUERY_TERM]}"
     new_data[index] = data_object
   
   if missings > 0:
@@ -35,10 +35,10 @@ def initialize(keyword: str, data: list[dict]) -> list[dict]:
 
 def initialize_object(data_object: dict) -> dict:
   new_object = data_object.copy()
-  new_object[keys.QUERY]               = None
-  new_object[keys.QUERY_LANG]          = ''
-  new_object[keys.QUERY_TIMESTAMP]     = 0
-  new_object[keys.QUERY_STATUS]        = status.QUERY_INCOMPLETE
-  new_object[keys.QUERY_RESULTS_COUNT] = 0
-  new_object[keys.QUERY_RESULTS]       = []
+  new_object[Keys.QUERY]               = None
+  new_object[Keys.QUERY_LANG]          = ''
+  new_object[Keys.QUERY_TIMESTAMP]     = 0
+  new_object[Keys.QUERY_STATUS]        = status.QUERY_INCOMPLETE
+  new_object[Keys.QUERY_RESULTS_COUNT] = 0
+  new_object[Keys.QUERY_RESULTS]       = []
   return new_object

@@ -1,4 +1,4 @@
-from geoid.constants import keys
+from geoid.constants import Keys
 # from .metadata import Metadata
 
 class Results:

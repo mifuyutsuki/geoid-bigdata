@@ -1,7 +1,7 @@
 from copy import deepcopy
 import csv, json, logging
 
-from geoid.constants import keys
+from geoid.constants import Keys
 from .metadata import Metadata
 
 logging.basicConfig(
@@ -72,12 +72,12 @@ class Results:
 
   def report(self) -> dict:
     report_dump = {
-      keys.QUERY               : self.metadata.query,
-      keys.QUERY_LANG          : self.metadata.lang,
-      keys.QUERY_TIMESTAMP     : self.metadata.timestamp,
-      keys.QUERY_STATUS        : self.metadata.status,
-      keys.QUERY_RESULTS_COUNT : self.count,
-      keys.QUERY_RESULTS       : self.results
+      Keys.QUERY               : self.metadata.query,
+      Keys.QUERY_LANG          : self.metadata.lang,
+      Keys.QUERY_TIMESTAMP     : self.metadata.timestamp,
+      Keys.QUERY_STATUS        : self.metadata.status,
+      Keys.QUERY_RESULTS_COUNT : self.count,
+      Keys.QUERY_RESULTS       : self.results
     }
 
     logger.debug(

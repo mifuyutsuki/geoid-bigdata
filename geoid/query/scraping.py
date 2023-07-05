@@ -9,7 +9,7 @@ import logging
 
 from .results import Results
 from geoid.config import Config
-from geoid.constants import cselectors, links
+from geoid.constants import Selectors, links
 
 logging.basicConfig(
   level=logging.INFO,
@@ -45,7 +45,7 @@ def get(
     ) \
     .until(
       lambda d:
-        d.find_element(By.CSS_SELECTOR, cselectors.SEARCHBOX)
+        d.find_element(By.CSS_SELECTOR, Selectors.SEARCHBOX)
     )
   except TimeoutException:
     logger.error(
@@ -56,7 +56,7 @@ def get(
   #: Check for results box
   try:
     webdriver.find_element(
-      By.CSS_SELECTOR, cselectors.RESULTS_BOX
+      By.CSS_SELECTOR, Selectors.RESULTS_BOX
     )
   except NoSuchElementException:
     logger.error(
@@ -127,13 +127,13 @@ def _scroll_one(
 
   #: Produces NoSuchElementException on reaching end-of-list.
   #: Used to mark end of query
-  webdriver.find_element(By.CSS_SELECTOR, cselectors.RESULTS_BOTTOM)
+  webdriver.find_element(By.CSS_SELECTOR, Selectors.RESULTS_BOTTOM)
 
   #: move_to_element() of out-of-viewport elements produces errors
   #: when using Firefox webdriver. Worked around by executing JS
   #: Case ex. https://stackoverflow.com/a/68676754
   result_elements = webdriver.find_elements(
-    By.CSS_SELECTOR, cselectors.GENERAL_RESULT
+    By.CSS_SELECTOR, Selectors.GENERAL_RESULT
   )
   last_result_element = result_elements[-1]
   webdriver.execute_script(
@@ -154,12 +154,12 @@ def _scroll_one(
 def _count_results(webdriver: WebDriver):
   return len(
     webdriver.find_elements(
-      By.CSS_SELECTOR, cselectors.GENERAL_RESULT
+      By.CSS_SELECTOR, Selectors.GENERAL_RESULT
     )
   )
 
 
 def grab(webdriver: WebDriver):
   return webdriver.find_element(
-    By.CSS_SELECTOR, cselectors.RESULTS_BOX
+    By.CSS_SELECTOR, Selectors.RESULTS_BOX
   ).get_attribute('innerHTML')

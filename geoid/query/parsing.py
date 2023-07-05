@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 
-from geoid.constants import cselectors
+from geoid.constants import Selectors
 from geoid import processing
 from .metadata import Metadata
 
@@ -18,7 +18,7 @@ def parse_html(grabbed_html: str, metadata: Metadata):
   )
   results = []
   
-  results_raw = BeautifulSoup(grabbed_html, 'lxml').select(cselectors.RESULT)
+  results_raw = BeautifulSoup(grabbed_html, 'lxml').select(Selectors.RESULT)
 
   for result_raw in results_raw:
     if result_raw is not None:
