@@ -3,11 +3,9 @@ from copy import deepcopy
 
 from geoid.constants import Keys
 
-logging.basicConfig(
-  level=logging.INFO,
-  format='[%(asctime)s] [%(name)s] %(levelname)s: %(message)s'
-)
+
 logger = logging.getLogger('Preprocessing')
+
 
 def preproc_queries(
   keyword: str,

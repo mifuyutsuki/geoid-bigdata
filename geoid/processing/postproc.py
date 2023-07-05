@@ -3,11 +3,9 @@ import logging
 
 from geoid.constants import Keys
 
-logging.basicConfig(
-  level=logging.INFO,
-  format='[%(asctime)s] [%(name)s] %(levelname)s: %(message)s'
-)
+
 logger = logging.getLogger('Postprocessing')
+
 
 def filter_by_city(data: list[dict]) -> list[dict]:
   filtered_data = data

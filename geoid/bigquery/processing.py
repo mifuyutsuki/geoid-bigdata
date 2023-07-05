@@ -4,10 +4,6 @@ from copy import deepcopy
 from geoid.constants import Keys, Status
 
 
-logging.basicConfig(
-  level=logging.INFO,
-  format='[%(asctime)s] [%(name)s] %(levelname)s: %(message)s'
-)
 logger = logging.getLogger(__name__)
 
 

@@ -6,11 +6,9 @@ from .config import Config
 from .constants import Keys
 from . import query, processing
 
-logging.basicConfig(
-  level=logging.INFO,
-  format='[%(asctime)s] [%(name)s] %(levelname)s: %(message)s'
-)
+
 logger = logging.getLogger(__name__)
+
 
 class BigQuerier:
   def __init__(

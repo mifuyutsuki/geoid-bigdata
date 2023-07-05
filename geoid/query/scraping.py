@@ -10,16 +10,14 @@ import logging
 from geoid.config import Config
 from geoid.constants import Selectors, Links
 
-logging.basicConfig(
-  level=logging.INFO,
-  format='[%(asctime)s] [%(name)s] %(levelname)s: %(message)s'
-)
+
 logger = logging.getLogger(__name__)
 
 INFINITE_SCROLL = 0
 SCROLL_SUCCESS = 0
 SCROLL_FAILURE = 1
 SCROLL_END     = 2
+
 
 def get(
   query: str,

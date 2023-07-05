@@ -4,11 +4,9 @@ import csv, json, logging
 from geoid.constants import Keys
 from .metadata import Metadata
 
-logging.basicConfig(
-  level=logging.INFO,
-  format='[%(asctime)s] [%(name)s] %(levelname)s: %(message)s'
-)
+
 logger = logging.getLogger(__name__)
+
 
 class Results:
   def __init__(self):

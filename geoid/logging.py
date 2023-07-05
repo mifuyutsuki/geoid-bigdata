@@ -3,7 +3,7 @@ import time
 #: Logging configuration is set this way (as .py) due to the need to grab
 #: datetime information for the log file name.
 
-LOG_FORMAT = '[%(asctime)s] [%(name)s] %(levelname)s: %(message)s'
+LOG_FORMAT = '[%(asctime)s] [%(name)s:%(lineno)s %(funcName)s] %(levelname)s: %(message)s'
 LOG_DATETIME = time.strftime('%Y%m%d_%H%M%S')
 LOG_FILENAME = r'logs\{0}.log'.format(LOG_DATETIME)
 
