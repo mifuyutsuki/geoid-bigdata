@@ -58,16 +58,17 @@ def begin(
   else:
     logger.info('Initialized web client')
 
-  try:
-    querier.get_one()
-  except StopIteration:
-    pass
-  except Exception as e:
-    logger.error(str(e))
-    raise
-  finally:
-    logger.info('Terminating webdriver')
-    driver.quit()
-    logger.info('Terminated webdriver')
+  while True:
+    try:
+      querier.get_one()
+    except StopIteration:
+      break
+    except Exception as e:
+      logger.error(str(e))
+      continue
+
+  logger.info('Terminating web client')
+  driver.quit()
+  logger.info('Terminated web client')
 
   querier.export_json(output_file)
