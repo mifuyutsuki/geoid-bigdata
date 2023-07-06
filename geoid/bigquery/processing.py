@@ -38,3 +38,17 @@ def initialize_object(data_object: dict) -> dict:
   new_object[Keys.QUERY_RESULTS_COUNT] = 0
   new_object[Keys.QUERY_RESULTS]       = []
   return new_object
+
+
+def report_object(data_object: dict):
+  query_status = Status.QUERY_INCOMPLETE
+
+  if data_object is None:
+    query_status = Status.QUERY_MISSING
+
+  if Keys.QUERY_STATUS not in data_object:
+    query_status = Status.QUERY_MISSING
+
+  query_status = data_object[Keys.QUERY_STATUS]
+
+  return query_status

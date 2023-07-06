@@ -14,6 +14,14 @@ logger = logging.getLogger(__name__)
 
 
 class BigQuery:
+  ZERO_STATUS_COUNTS = {
+    Status.QUERY_INCOMPLETE                      : 0,
+    Status.QUERY_MISSING                         : 0,
+    Status.QUERY_ERRORED                         : 0,
+    Status.QUERY_COMPLETE                        : 0,
+    Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING : 0
+  }
+  
   def __init__(self, use_config: Config=None):
     self.webdriver = None
     self.config    = use_config if use_config else Config()
@@ -23,11 +31,11 @@ class BigQuery:
     self.autosave_filename = None
 
     self.data    = None
-    self.count   = 0
     self.querier = None
 
-    self._progress   = 1
-    self._completeds = 0
+    self._progress      = 0
+    self._count         = 0
+    self._status_counts = self.ZERO_STATUS_COUNTS
   
 
   def import_new(
@@ -41,8 +49,15 @@ class BigQuery:
 
     self.source_filename = source_filename
     self.data            = data
-    self.count           = len(data)
     self.querier         = None
+
+    self._progress      = 0
+    self._count          = len(data)
+    self._status_counts = self.ZERO_STATUS_COUNTS
+
+    for data_object in data:
+      object_status = processing.report_object(data_object)
+      self._status_counts[object_status] += 1
 
     logger.info(
       f'Imported cities data JSON from "{source_filename}"'
@@ -57,10 +72,13 @@ class BigQuery:
     #: verify?
 
     self.source_filename = source_filename
-    self.data            = data
-    self.count           = len(data)
+    self.data            = PendingDeprecationWarning
     self.querier         = None
     
+    self._progress       = 0
+    self._count          = len(data)
+    self._status_counts  = self.ZERO_STATUS_COUNTS
+
     logger.info(
       f'Imported save data JSON from "{source_filename}"'
     )
@@ -87,12 +105,18 @@ class BigQuery:
     if indent is None          : indent          = self.config.fileio.output_indent
 
     if not isinstance(target_filename, str):
-      raise ValueError(f'Invalid filename of type "{str(type(target_filename))}"')
+      raise ValueError(
+        f'Invalid filename of type "{str(type(target_filename))}"'
+      )
     if not isinstance(indent, int):
-      raise ValueError(f'Invalid indent value of type "{str(type(indent))}"')
+      raise ValueError(
+        f'Invalid indent value of type "{str(type(indent))}"'
+      )
 
     if len(target_filename) <= 0:
-      raise ValueError(f'Invalid filename of "{target_filename}"')
+      raise ValueError(
+        f'Invalid filename of "{target_filename}"'
+      )
 
     export_data = deepcopy(self.data)
 
@@ -113,7 +137,9 @@ class BigQuery:
   def autosave(self):
     autosave_filename = self.autosave_filename
     if len(autosave_filename) <= 0:
-      raise ValueError(f'Unspecified autosave filename of "{autosave_filename}"')
+      raise ValueError(
+        f'Unspecified autosave filename of "{autosave_filename}"'
+      )
     
     io.export_json(
       autosave_filename, self.data, self.config.fileio.output_indent
@@ -125,9 +151,10 @@ class BigQuery:
 
 
   def initialize(self, webdriver: WebDriver):
-    self.webdriver = webdriver
-    self.querier   = self._get_one_iter()
-    self._progress = 1
+    self.webdriver      = webdriver
+    self.querier        = self._get_one_iter()
+    self._progress      = 0
+    self._status_counts = self.ZERO_STATUS_COUNTS
 
 
   def get_one(self):
@@ -135,23 +162,49 @@ class BigQuery:
       raise RuntimeError(
         'BigQuery must be initialized with initialize() to begin querying'
       )
+    if self._progress >= self._count:
+      logger.info(
+        'Reached end of query'
+      )
+      self.report_log()
+      raise StopIteration('Reached end of query')
     
+    index = self._progress
+    self._progress = index + 1
     logger.info(
-      f'Query progress: ({str(self._progress)}/{str(self.count)})'
+      f'Query progress: ({str(self._progress)}/{str(self._count)})'
     )
-    query_status   = next(self.querier)
-    self._progress = self._progress + 1
+
+    query_status = next(self.querier)
+    self._status_counts[query_status] += 1
 
     if query_status == Status.QUERY_MISSING:
       logger.warning(
-        f'Query object {str(self._progress)}/{str(self.count)} skipped '
+        f'Query object {str(self._progress)}/{str(self._count)} skipped '
         f'due to missing query'
       )
+    
+    elif query_status == Status.QUERY_ERRORED:
+      logger.error(
+        f'Could not complete query {str(self._progress)}/{str(self._count)}'
+      )
 
-    if query_status == Status.QUERY_COMPLETE or \
-    query_status == Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING:
-      self._completeds = self._completeds + 1
-      if self._completeds % self.config.fileio.autosave_every == 0:
+    elif query_status == Status.QUERY_COMPLETE:
+      logger.info(
+        f'Completed query {str(self._progress)}/{str(self._count)}'
+      )
+      if self._progress % self.config.fileio.autosave_every == 0:
+        self.autosave()
+    
+    elif query_status == Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING:
+      logger.info(
+        f'Completed query {str(self._progress)}/{str(self._count)}'
+      )
+      logger.warning(
+        f'Query {str(self._progress)}/{str(self._count)} '
+        f'contains missing municipality data'
+      )
+      if self._progress % self.config.fileio.autosave_every == 0:
         self.autosave()
     
     return query_status
@@ -162,9 +215,40 @@ class BigQuery:
       self.autosave()
 
     for index, data_object in enumerate(self.data):
-      new_object, query_status = query.get_one(data_object, self.webdriver, self.config)
+      new_object, query_status = query.get_one(
+        data_object, self.webdriver, self.config
+      )
 
       if new_object is not None:
         self.data[index] = new_object
       
       yield query_status
+  
+
+  def report_log(self):
+    queries_progress                  = self._progress
+    queries_count                     = self._count
+    queries_missing                   = self._status_counts[Status.QUERY_MISSING]
+    queries_errored                   = self._status_counts[Status.QUERY_ERRORED]
+    queries_complete                  = self._status_counts[Status.QUERY_COMPLETE]
+    queries_complete_municips_missing = self._status_counts[Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING]
+
+    logger.info(
+      f'Report: {str(queries_progress)} processed, {str(queries_count)} object(s)'
+    )
+    logger.info(
+      f'{str(queries_complete + queries_complete_municips_missing)} completed '
+      f'({str(queries_complete_municips_missing)} with missing municips)'
+    )
+    logger.info(
+      f'{str(queries_missing)} missing, {str(queries_errored)} error(s)'
+    )
+  
+
+  @property
+  def count(self):
+    return self._count
+  
+  @property
+  def progress(self):
+    return self._progress
