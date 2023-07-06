@@ -1,9 +1,9 @@
 class QueryConfig:
   def __init__(self):
     self.loading_timeout_seconds = 15.0
-    self.scroll_wait_seconds     = 1.1
+    self.scroll_wait_seconds     = 2.5
     self.scroll_retries          = 5
-    self.depth                   = 0
+    self.depth                   = 3
     self.lang                    = 'id'
 
 class PostprocConfig:
