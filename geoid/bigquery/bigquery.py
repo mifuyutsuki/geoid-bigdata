@@ -30,7 +30,7 @@ class BigQuery:
     self._completeds = 0
   
 
-  def import_cities(
+  def import_new(
     self,
     source_filename: str,
     keyword: str

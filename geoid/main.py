@@ -55,7 +55,7 @@ def begin(
   querier.target_filename   = output_file
   querier.autosave_filename = output_file + '.autosave'
 
-  querier.import_cities(source_file, keyword)
+  querier.import_new(source_file, keyword)
 
   logger.info('Initializing web client')
   try:
