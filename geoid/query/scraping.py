@@ -35,6 +35,14 @@ def get(
     )
   )
 
+  #: Pause if initial pause is set
+  if config.query.initial_pause_seconds > 0:
+    logger.info(
+      f'Pausing for {str(config.query.initial_pause_seconds)} second(s) '
+      f'per configuration'
+    )
+    sleep(config.query.initial_pause_seconds)
+
   #: Detect CAPTCHA box
   if len(webdriver.find_elements(
     By.CSS_SELECTOR, Selectors.RECAPTCHA

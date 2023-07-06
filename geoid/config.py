@@ -1,5 +1,6 @@
 class QueryConfig:
   def __init__(self):
+    self.initial_pause_seconds   = 0.0
     self.loading_timeout_seconds = 15.0
     self.scroll_wait_seconds     = 2.5
     self.scroll_retries          = 5
