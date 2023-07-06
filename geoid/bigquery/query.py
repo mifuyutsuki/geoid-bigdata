@@ -2,25 +2,12 @@ from selenium.webdriver.remote.webdriver import WebDriver
 
 import logging
 
-from geoid.common import io
 from geoid.config import Config
 from geoid.constants import Keys, Status
 from geoid.query import query
-from . import processing
 
 
 logger = logging.getLogger(__name__)
-
-
-def import_cities(
-  source_filename: str,
-  keyword: str
-):
-  data = io.import_json(source_filename)
-  data = processing.initialize(keyword, data)
-  #: verify?
-
-  return data
 
 
 def get_one(
