@@ -42,9 +42,9 @@ parser.add_argument(
 
 parser.add_argument(
   '-depth', type=int,
-  help='Search depth; set 0 for endless. Default: 0',
+  help='Search depth; set 0 for endless. Default: 1',
   action='store',
-  default=0,
+  default=1,
   metavar='<number>',
   dest='depth'
 )
@@ -63,6 +63,13 @@ parser.add_argument(
   action='store',
   default='firefox',
   dest='browser'
+)
+parser.add_argument(
+  '-init-pause', type=float,
+  help='Pause for a set number of seconds after access.',
+  action='store',
+  default=0.0,
+  dest='init_pause'
 )
 parser.add_argument(
   '--show',
@@ -119,16 +126,17 @@ def main():
       quit()
   
   config = Config()
-  config.query.depth               = args.depth
-  config.fileio.output_indent      = args.indent
-  config.webclient.webclient       = args.browser
-  config.webclient.show            = args.show
-  config.fileio.use_timestamp_name = args.timestamp
-  config.fileio.keep_autosave      = args.keep_autosave
-  config.postproc.filter           = args.filter
-  config.postproc.flatten          = args.flatten
-  config.postproc.convert_ascii    = args.convert_ascii
-  config.postproc.replace_newline  = args.replace_newline
+  config.query.depth                 = args.depth
+  config.fileio.output_indent        = args.indent
+  config.webclient.webclient         = args.browser
+  config.query.initial_pause_seconds = args.init_pause
+  config.webclient.show              = args.show
+  config.fileio.use_timestamp_name   = args.timestamp
+  config.fileio.keep_autosave        = args.keep_autosave
+  config.postproc.filter             = args.filter
+  config.postproc.flatten            = args.flatten
+  config.postproc.convert_ascii      = args.convert_ascii
+  config.postproc.replace_newline    = args.replace_newline
 
   if args.cities is None:
     # print(
