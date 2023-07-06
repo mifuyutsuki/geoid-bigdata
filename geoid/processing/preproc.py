@@ -4,7 +4,7 @@ from copy import deepcopy
 from geoid.constants import Keys
 
 
-logger = logging.getLogger('Preprocessing')
+logger = logging.getLogger(__name__)
 
 
 def preproc_queries(

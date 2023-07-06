@@ -4,7 +4,7 @@ import logging
 from geoid.constants import Keys
 
 
-logger = logging.getLogger('Postprocessing')
+logger = logging.getLogger(__name__)
 
 
 def filter_by_city(data: list[dict]) -> list[dict]:
