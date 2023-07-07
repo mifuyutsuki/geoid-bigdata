@@ -19,7 +19,7 @@ class Keys:
   LOCATION_LINK = 'location_link'
   IMAGE_LINK    = 'image_link'
 
-  #: Query report keys
+  #: Query results keys
   QUERY               = 'query'
   QUERY_LANG          = 'query_lang'
   QUERY_TERM          = 'query_term'
@@ -27,3 +27,8 @@ class Keys:
   QUERY_STATUS        = 'query_status'
   QUERY_RESULTS_COUNT = 'query_results_count'
   QUERY_RESULTS       = 'query_results'
+
+  #: Query status report keys
+  REPORT_NO     = 'no'
+  REPORT_QUERY  = 'query'
+  REPORT_STATUS = 'status'

@@ -6,7 +6,7 @@ import logging
 from geoid.common import io
 from geoid.config import Config
 from geoid.processing import postproc
-from geoid.constants import Status
+from geoid.constants import Status, Keys
 from . import processing, query
 
 
@@ -20,6 +20,14 @@ class BigQuery:
     Status.QUERY_ERRORED                         : 0,
     Status.QUERY_COMPLETE                        : 0,
     Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING : 0
+  }
+
+  ZERO_STATUS_OBJECTS = {
+    Status.QUERY_INCOMPLETE                      : [],
+    Status.QUERY_MISSING                         : [],
+    Status.QUERY_ERRORED                         : [],
+    Status.QUERY_COMPLETE                        : [],
+    Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING : []
   }
   
   def __init__(self, use_config: Config=None):
@@ -242,6 +250,43 @@ class BigQuery:
     )
     logger.info(
       f'{str(queries_missing)} missing, {str(queries_errored)} error(s)'
+    )
+
+  
+  def report_list(self):
+    report_entries   = []
+    new_report_entry = {
+      Keys.REPORT_NO     : 0,
+      Keys.REPORT_QUERY  : None,
+      Keys.REPORT_STATUS : None
+    }
+    report_categories = self.ZERO_STATUS_OBJECTS.copy()
+
+    for index, data_object in enumerate(self.data):
+      report_entry = new_report_entry.copy()
+      report_entry[Keys.REPORT_NO] = index + 1
+
+      if Keys.QUERY in data_object:
+        report_entry[Keys.REPORT_QUERY] = data_object[Keys.QUERY]
+        report_entry[Keys.REPORT_STATUS] = data_object[Keys.QUERY_STATUS]
+      else:
+        report_entry[Keys.REPORT_STATUS] = Status.QUERY_MISSING
+
+      report_entries.append(report_entry)
+      report_categories[data_object[Keys.QUERY_STATUS]].append(str(index + 1))
+    
+    return report_entries
+  
+
+  def report_json(self, filename: str):
+    report_data = self.report_list()
+
+    io.export_json(
+      filename, report_data, self.config.fileio.output_indent
+    )
+    
+    logger.info(
+      f'Exported queries report data JSON to "{filename}"'
     )
   
 
