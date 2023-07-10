@@ -24,25 +24,28 @@ The program does not and will not automatically bypass CAPTCHA.
 
 While Selenium supports [additional browsers](https://www.selenium.dev/documentation/webdriver/browsers/), GeoID has only been tested on the above.
 
-Installing the program using `pip` (see [Installation](#installation)) automatically installs GeoID's dependencies for you.
+GeoID also uses the following libraries:
+
+* **BeautifulSoup4**
+* **requests**
+* **lxml**
+* **unidecode**
+
+Installing the program using `pip` (see [Installation](#installation)) or using `pip install -r requirements.txt` automatically installs the dependencies for you.
 
 ## Installation
 
 Depending on your setup, you may need to replace `python` below with `python3` (Unix/macOS) or `py` (Windows).
 
-### (WIP) PyPI
+### (TBA) PyPI
 
-*This step is still work in progress. These commands will not work.*
-
-```bash
-python -m pip install geoid-bigdata
-```
+*To be announced.*
 
 ### From source
 
 Clone this repository:
 
-(WIP)
+(TBA)
 
 On the repository path (using `cd` or by launching a new terminal in the path),
 
