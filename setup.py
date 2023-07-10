@@ -31,7 +31,7 @@ setup(
   install_requires=install_requires,
   entry_points={
     "console_scripts": [
-      "geoid=geoid.cli.cli:start"
+      "geoid=cli.cli:start"
     ],
   }
 )
