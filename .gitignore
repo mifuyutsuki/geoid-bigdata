@@ -1,5 +1,6 @@
-# From virtual environment
 __pycache__/
+
+# From virtual environment
 .venv
 venv/
 
@@ -10,6 +11,7 @@ test_*
 
 # Logs
 *.log
+geckodriver.log
 
 # VS Code things
 .vscode
