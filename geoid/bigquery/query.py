@@ -15,14 +15,17 @@ def get_one(
   webdriver: WebDriver,
   config: Config
 ):
-  new_object = data_object.copy()
-
   #: 1
-  if new_object is None:
-    return new_object, Status.QUERY_MISSING
+  if data_object is None:
+    return data_object, Status.QUERY_MISSING
   
-  if Keys.QUERY not in new_object:
-    return new_object, Status.QUERY_MISSING
+  if Keys.QUERY not in data_object:
+    return data_object, Status.QUERY_MISSING
+  
+  if data_object[Keys.QUERY] is None:
+    return data_object, Status.QUERY_MISSING
+  
+  new_object = data_object.copy()
 
   if Keys.QUERY_STATUS not in new_object:
     new_object[Keys.QUERY_STATUS] = Status.QUERY_INCOMPLETE

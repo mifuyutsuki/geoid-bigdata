@@ -1,17 +1,18 @@
 import argparse
 from geoid import __version__
-from geoid.main import begin
 from geoid.config import Config
+
+from .run import run_batch
 
 parser = argparse.ArgumentParser(
   description=
-    'GMaps places data mining program for Big Data use, '
-    'designed for Indonesia locations.\n'
+    'Maps data scraper-parser for Indonesia places.\n'
     'Example usage: keyword "pariwisata" '
     '--> search "pariwisata <cityname>" for all <cityname> in <cities>.\n'
     '\n'
     'Query "<keyword> <cityname>" in batch mode with -i <filename>.\n'
-    'Query "<keyword>" in single mode without using -i.',
+    '(WIP) Query "<keyword>" in single mode without using -i.',
+  prog='geoid',
   formatter_class=argparse.RawDescriptionHelpFormatter
 )
 
@@ -114,7 +115,7 @@ parser.add_argument(
   dest='replace_newline'
 )
 
-def main():
+def start():
   args = parser.parse_args()
 
   if args.timestamp:
@@ -149,7 +150,7 @@ def main():
     print(
       f'Starting in batch mode. Query: "{args.keyword} <cityname>"'
     )
-    begin(
+    run_batch(
       keyword=args.keyword,
       source_file=args.cities,
       output_file=args.output,
@@ -157,4 +158,4 @@ def main():
     )
 
 if __name__ == '__main__':
-  main()
+  start()

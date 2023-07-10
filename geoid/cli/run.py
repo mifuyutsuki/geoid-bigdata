@@ -6,37 +6,11 @@ from geoid.config import Config
 from geoid.logging import LOG_CONFIG
 import logging, logging.config, time
 
+
 logger = logging.getLogger(__name__)
 
-def init_webclient(config: Config):
-  use_client  = config.webclient.webclient.lower().strip()
-  show_client = config.webclient.show
-  if use_client == 'firefox':
-    driver = webclient.init_firefox(show_client=show_client)
-  elif use_client == 'chrome':
-    driver = webclient.init_chrome(show_client=show_client)
-  else:
-    raise ValueError(
-      f'Webclient "{use_client}" is unsupported or does not exist'
-    )
 
-  return driver
-
-
-def get_all(querier: BigQuery):
-  while True:
-    try:
-      querier.get_one()
-    except StopIteration:
-      break
-    except Exception as e:
-      logger.error(str(e))
-      continue
-  
-  return querier
-
-
-def begin(
+def run_batch(
   keyword: str,
   source_file: str,
   output_file: str,
@@ -81,3 +55,31 @@ def begin(
     logger.info('Terminated web client')
 
   querier.export_json(output_file)
+
+
+def init_webclient(config: Config):
+  use_client  = config.webclient.webclient.lower().strip()
+  show_client = config.webclient.show
+  if use_client == 'firefox':
+    driver = webclient.init_firefox(show_client=show_client)
+  elif use_client == 'chrome':
+    driver = webclient.init_chrome(show_client=show_client)
+  else:
+    raise ValueError(
+      f'Webclient "{use_client}" is unsupported or does not exist'
+    )
+
+  return driver
+
+
+def get_all(querier: BigQuery):
+  while True:
+    try:
+      querier.get_one()
+    except StopIteration:
+      break
+    except Exception as e:
+      logger.error(str(e))
+      continue
+  
+  return querier

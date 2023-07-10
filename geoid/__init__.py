@@ -1,8 +1,7 @@
-__version__ = '2023.1'
+__version__ = '0.1.0'
 
 from geoid.bigquerier import BigQuerier
 from geoid.query import Results
 from geoid.config import Config
 
 from geoid.query import get
-from geoid.main import begin
