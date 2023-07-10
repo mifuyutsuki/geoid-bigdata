@@ -8,6 +8,8 @@ GeoID accepts a query or a list of queries based on (1) a single keyword and (2)
 
 The program pulls data from (1) the Google Maps search results page and (2) the kodeposku.com API to obtain location information from obtained coordinates. Due to the dynamic nature of the Google Maps frontend, Selenium is used to initialize a browser, with which the program can "scroll down" search results to obtain more results.
 
+GeoID is created as part of an internship program.
+
 ## Disclaimer
 
 GeoID pulls from publicly available data on Google Maps. As an automated web scraper, usage of the program is a legal gray area and may violate Google's Terms of Service. Please use this program with caution.
@@ -18,21 +20,19 @@ The program does not and will not automatically bypass CAPTCHA.
 
 * **Python** 3.11 or later
 * **Selenium** 4.10 or later
-  * Supported webdrivers: **Firefox** (default), **Chrome**
+  * Supported browsers: **Firefox** (default), **Chrome**
 
-Other requirements are listed in requirements.txt. Installing the program using `pip` (see [Installation](#installation)) automatically installs the dependencies for you.
+While Selenium supports [additional browsers](https://www.selenium.dev/documentation/webdriver/browsers/), GeoID has only been tested on the above.
+
+Installing the program using `pip` (see [Installation](#installation)) automatically installs GeoID's dependencies for you.
 
 ## Installation
 
-### Using PyPI (`pip`)
+Depending on your setup, you may need to replace `python` below with `python3` (Unix/macOS) or `py` (Windows).
 
-Linux/MacOS (Unix):
+### (WIP) PyPI
 
-```bash
-pip install geoid-bigdata
-```
-
-Windows:
+*This step is still work in progress. These commands will not work.*
 
 ```bash
 python -m pip install geoid-bigdata
@@ -42,9 +42,7 @@ python -m pip install geoid-bigdata
 
 Clone this repository:
 
-```bash
-git clone https://github.com/           /geoid-bigdata
-```
+(WIP)
 
 On the repository path (using `cd` or by launching a new terminal in the path),
 
