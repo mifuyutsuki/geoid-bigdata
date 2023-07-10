@@ -45,7 +45,9 @@ Depending on your setup, you may need to replace `python` below with `python3` (
 
 Clone this repository:
 
-(TBA)
+```bash
+git clone https://github.com/mifuyutsuki/geoid-bigdata
+```
 
 On the repository path (using `cd` or by launching a new terminal in the path),
 

@@ -20,6 +20,7 @@ setup(
   description='Maps data scraper-parser for Indonesia places',
   long_description=readme,
   long_description_content_type='text/markdown',
+  url='https://github.com/mifuyutsuki/geoid-bigdata',
   author='mifuyutsuki',
   classifiers=[  
     "Development Status :: 3 - Alpha"
