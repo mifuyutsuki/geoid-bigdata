@@ -2,6 +2,15 @@
 
 Maps data scraper-parser for Indonesia places. Uses Selenium. CLI available.
 
+## Table of Contents
+
+* [About](#about)
+* [Disclaimer](#disclaimer)
+* [Requirements](#requirements)
+* [Installation](#installation)
+  * [(TBA) PyPI](#tba-pypi)
+  * [From source](#from-source)
+
 ## About
 
 GeoID accepts a query or a list of queries based on (1) a single keyword and (2) a city or a list of cities in Indonesia. For example, given keyword `wisata` and city `kota bandung`, search for `wisata kota bandung`. The output is a JSON file containing the acquired search results. By default, GeoID does not "scroll down" search results; use `Config.query.depth` or CLI argument `-depth n` to change this setting.
