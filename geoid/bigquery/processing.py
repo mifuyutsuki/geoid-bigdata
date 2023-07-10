@@ -12,12 +12,17 @@ def initialize(keyword: str, data: list[dict]) -> list[dict]:
   missings = 0
 
   for index, data_object in enumerate(new_data):
+    #: Do this first for dict ordering reasons
     if Keys.QUERY_TERM not in data_object:
       missings = missings + 1
-      continue
-
+      data_object[Keys.QUERY_TERM] = None
+    
     data_object = initialize_object(data_object)
-    data_object[Keys.QUERY] = f"{keyword} {data_object[Keys.QUERY_TERM]}"
+
+    if data_object[Keys.QUERY_TERM] is not None:
+      data_object[Keys.QUERY] = f"{keyword} {data_object[Keys.QUERY_TERM]}"
+
+    #: Using index assignment as otherwise new_data would not be modified
     new_data[index] = data_object
   
   if missings > 0:
