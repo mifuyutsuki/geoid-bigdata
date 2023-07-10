@@ -1,5 +1,9 @@
 from setuptools import setup, find_packages
-from geoid import __version__
+
+version = {}
+with open('./geoid/version.py') as f:
+  exec(f.read(), version)
+version = version['__version__']
 
 with open('README.md', encoding='UTF-8') as f:
   readme = f.read()
@@ -16,7 +20,7 @@ install_requires = [
 
 setup(
   name='geoid-bigdata',
-  version=__version__,
+  version=version,
   description='Maps data scraper-parser for Indonesia places',
   long_description=readme,
   long_description_content_type='text/markdown',

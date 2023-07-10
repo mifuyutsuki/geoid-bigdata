@@ -1,4 +1,4 @@
-from geoid import __version__
+from geoid.version import __version__
 from geoid.config import Config
 
 from .run import run_batch

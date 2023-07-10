@@ -1,4 +1,4 @@
-from geoid import __version__
+from geoid.version import __version__
 import argparse
 
 
