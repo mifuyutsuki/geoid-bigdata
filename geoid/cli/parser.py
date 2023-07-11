@@ -3,6 +3,13 @@ import argparse
 
 
 def build():
+  """
+  Create an argument parser for GeoID CLI.
+
+  Returns:
+      ArgumentParser object to be used for parsing system arguments.
+  """
+
   parser = argparse.ArgumentParser(
     description=
       'Maps data scraper-parser for Indonesia places.\n'
