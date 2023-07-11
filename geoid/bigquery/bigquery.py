@@ -59,9 +59,9 @@ class BigQuery:
     self.data            = data
     self.querier         = None
 
-    self._progress      = 0
+    self._progress       = 0
     self._count          = len(data)
-    self._status_counts = self.ZERO_STATUS_COUNTS
+    self._status_counts  = self.ZERO_STATUS_COUNTS
 
     for data_object in data:
       object_status = processing.report_object(data_object)
@@ -80,7 +80,7 @@ class BigQuery:
     #: verify?
 
     self.source_filename = source_filename
-    self.data            = PendingDeprecationWarning
+    self.data            = data
     self.querier         = None
     
     self._progress       = 0
