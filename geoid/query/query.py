@@ -17,6 +17,27 @@ def get(
   webdriver: WebDriver,
   use_config:Config=None
 ):
+  """
+  Search GMaps for `query` and return results of places.
+
+  Return a Results object containing query results for term `query` and query
+  information such as its timestamp (logged on query start). Uses Selenium
+  web client given by `webdriver`.
+
+  Status of results are given by the value of `results.metadata.status`
+  corresponding to values in `geoid.constants.Status`. Errors during querying
+  are signalled through the metadata variable's value.
+
+  Args:
+      query (str): Search or query keyword.
+      webdriver (WebDriver): Selenium web-client/webdriver object.
+      use_config (Config): Config object containing advanced query and program
+      settings.
+  
+  Returns:
+      Results object containing query information and results.
+  """
+
   if len(query) <= 0:
     raise ValueError('Query key must not be empty')
   
@@ -71,6 +92,19 @@ def get(
 
 
 def get_saved(data_object: dict):
+  """
+  Get a Results object from a dict.
+
+  Use to load one query object from an autosave or an unpostprocessed export.
+
+  Args:
+      data_object (dict): Query object dictionary containing query information
+      and results.
+  
+  Returns:
+      Results object containing query information and results.
+  """
+
   results = Results()
   results.metadata.status    = data_object[Keys.QUERY_STATUS]
   results.metadata.query     = data_object[Keys.QUERY]
