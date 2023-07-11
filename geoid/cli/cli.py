@@ -4,7 +4,16 @@ from geoid.config import Config
 from .run import run_batch
 from .parser import build
 
+import time
+
+
 def start():
+  """
+  Launch GeoID using the provided system arguments.
+
+  Called when launching GeoID from the command line with `python -m geoid`.
+  """
+
   parser = build()
   args = parser.parse_args()
 
@@ -14,7 +23,12 @@ def start():
         'Specify timestamp location in the output filename using {timestamp} '
         'to use the timestamp option'
       )
-      quit()
+      return
+    else:      
+      timestamp = time.strftime('%Y%m%d_%H%M%S')
+      output_file = args.output.replace("{timestamp}", timestamp)
+  else:
+    output_file = args.output
   
   config = Config()
   config.query.depth                 = args.depth
@@ -31,18 +45,20 @@ def start():
 
   if args.cities is None:
     # print(
-    #   f'Starting in single mode. Query: "{args.keyword}"'
+    #   f'Starting single query.'
+    #   f'Query keyword: "{args.keyword}"'
     # )
     print(
       'Single mode is still work in progress.'
     )
   else:
     print(
-      f'Starting in batch mode. Query: "{args.keyword} <cityname>"'
+      f'Starting batch query.\n'
+      f'Query keyword: "{args.keyword} <cityname>"'
     )
     run_batch(
       keyword=args.keyword,
       source_file=args.cities,
-      output_file=args.output,
+      output_file=output_file,
       use_config=config
     )

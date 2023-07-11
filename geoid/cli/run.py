@@ -4,7 +4,7 @@ from geoid.bigquery import BigQuery
 from geoid.common import webclient
 from geoid.config import Config
 from geoid.logging import LOG_CONFIG
-import logging, logging.config, time
+import logging, logging.config
 
 
 logger = logging.getLogger(__name__)
@@ -17,13 +17,34 @@ def run_batch(
   *,
   use_config:Config=None
 ):
+  """
+  Launch a batch query for "keyword cityname" for citynames in `source_file`.
+
+  Launch `keyword` and list of city names given in JSON file `source_file`,
+  start a batch query for "keyword cityname" and output its results to JSON
+  file `output_file`.
+  
+  Using `use_config` settings, query results may be postprocessed, for example
+  to filter for city-mismatched results and/or flatten to a single-layered JSON
+  array of objects.
+
+  In addition, the function may also create unpostprocessed autosave file
+  `output_file.autosave` as well as log file `./logs/timestamp.log`. This may
+  be changed in `use_config`.
+
+  Args:
+      keyword (str): Query keyword which will prepend the citynames.
+      source_file (str): Input JSON file containing citynames.
+      output_file (str): Output JSON file containing query results.
+
+  Kwargs:
+      use_config (Config): Config object containing advanced query and program
+      settings.
+  """
+
   logging.config.dictConfig(LOG_CONFIG)
 
   config = use_config if use_config else Config()
-
-  if config.fileio.use_timestamp_name:
-    timestamp = time.strftime('%Y%m%d_%H%M%S')
-    output_file = output_file.replace("{timestamp}", timestamp)
 
   querier = BigQuery(config)
   querier.target_filename   = output_file
@@ -40,10 +61,10 @@ def run_batch(
     logger.error(
       'Unable to initialize web client'
     )
-    quit()
+    return
   except Exception as e:
     logger.exception(e)
-    quit()
+    return
   else:
     logger.info('Initialized web client')
 
@@ -54,10 +75,34 @@ def run_batch(
     driver.quit()
     logger.info('Terminated web client')
 
-  querier.export_json(output_file)
+  querier.report_log()
+
+  if querier.count > 0:
+    querier.export_json(output_file)
+  else:
+    logger.info('No entries to export')
 
 
 def init_webclient(config: Config):
+  """
+  Initialize a Selenium web client.
+
+  Receive input from config value `config.webclient.webclient`, then initialize
+  a Selenium webdriver controlling the web client.
+
+  Args:
+      config: Config object containing advanced query settings.
+  
+  Returns:
+      Selenium webdriver controlling the web client.
+  
+  Raises
+      ValueError: Web client provided in `config` doesn't exist or is
+      unsupported by GeoID.
+      WebDriverException: Web client failed to initialize. May occur when the
+      web client closed itself to update.
+  """
+
   use_client  = config.webclient.webclient.lower().strip()
   show_client = config.webclient.show
   if use_client == 'firefox':
@@ -66,7 +111,7 @@ def init_webclient(config: Config):
     driver = webclient.init_chrome(show_client=show_client)
   else:
     raise ValueError(
-      f'Webclient "{use_client}" is unsupported or does not exist'
+      f'Webclient "{use_client}" does not exist or is unsupported'
     )
 
   return driver
