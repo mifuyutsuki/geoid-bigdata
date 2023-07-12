@@ -9,7 +9,7 @@ class QueryConfig:
 
 class PostprocConfig:
   def __init__(self):
-    self.filter          = True
+    self.filter          = False
     self.flatten         = False
     self.convert_ascii   = False
     self.replace_newline = False

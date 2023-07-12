@@ -97,9 +97,9 @@ def build():
     dest='keep_autosave'
   )
   parser.add_argument(
-    '--no-filter',
+    '--filter',
     help='Post: (Batch mode only) Don\'t filter results with mismatched cities.',
-    action='store_false',
+    action='store_true',
     dest='filter'
   )
   parser.add_argument(
