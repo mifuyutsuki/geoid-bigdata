@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class BigQuery:
-  ZERO_STATUS_COUNTS = {
+  BASE_STATUS_COUNTS = {
     Status.QUERY_INCOMPLETE                      : 0,
     Status.QUERY_MISSING                         : 0,
     Status.QUERY_ERRORED                         : 0,
@@ -21,7 +21,7 @@ class BigQuery:
     Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING : 0
   }
 
-  ZERO_STATUS_OBJECTS = {
+  BASE_STATUS_OBJECTS = {
     Status.QUERY_INCOMPLETE                      : [],
     Status.QUERY_MISSING                         : [],
     Status.QUERY_ERRORED                         : [],
@@ -42,7 +42,7 @@ class BigQuery:
 
     self._progress      = 0
     self._count         = 0
-    self._status_counts = self.ZERO_STATUS_COUNTS
+    self._status_counts = self.BASE_STATUS_COUNTS
   
 
   def import_new(
@@ -60,7 +60,7 @@ class BigQuery:
 
     self._progress       = 0
     self._count          = len(data)
-    self._status_counts  = self.ZERO_STATUS_COUNTS
+    self._status_counts  = self.BASE_STATUS_COUNTS
 
     # for data_object in data:
     #   object_status = processing.report_object(data_object)
@@ -87,7 +87,7 @@ class BigQuery:
     
     self._progress       = 0
     self._count          = len(data)
-    self._status_counts  = self.ZERO_STATUS_COUNTS
+    self._status_counts  = self.BASE_STATUS_COUNTS
 
     logger.info(
       f'Imported save data JSON from "{source_filename}"'
@@ -164,7 +164,7 @@ class BigQuery:
     self.webdriver      = webdriver
     self.querier        = self._get_one_iter()
     self._progress      = 0
-    self._status_counts = self.ZERO_STATUS_COUNTS
+    self._status_counts = self.BASE_STATUS_COUNTS
 
 
   def get_one(self):
@@ -221,9 +221,6 @@ class BigQuery:
 
 
   def _get_one_iter(self):
-    if self.config.fileio.autosave_every > 0:
-      self.autosave()
-
     for index, data_object in enumerate(self.data):
       new_object, query_status = query.get_one(
         data_object, self.webdriver, self.config
@@ -262,7 +259,7 @@ class BigQuery:
       Keys.REPORT_QUERY  : None,
       Keys.REPORT_STATUS : None
     }
-    report_categories = self.ZERO_STATUS_OBJECTS.copy()
+    report_categories = self.BASE_STATUS_OBJECTS.copy()
 
     for index, data_object in enumerate(self.data):
       report_entry = new_report_entry.copy()
