@@ -57,6 +57,12 @@ def run_batch(
 
   querier.import_new(source_file, keyword)
 
+  if querier.count <= 0:
+    logger.warning(
+      'No queries to start'
+    )
+    return
+
   #: Initialize web client
   logger.info('Initializing web client')
   try:
