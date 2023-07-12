@@ -5,7 +5,6 @@ import logging
 
 from geoid.common import io
 from geoid.config import Config
-from geoid.processing import postproc
 from geoid.constants import Status, Keys
 from . import processing, query
 
@@ -131,10 +130,10 @@ class BigQuery:
 
     export_data = deepcopy(self.data)
 
-    if filter_by_city  : export_data = postproc.filter_by_city(export_data)
-    if flatten         : export_data = postproc.convert_flat(export_data)
-    if convert_ascii   : export_data = postproc.convert_ascii(export_data)
-    if replace_newline : export_data = postproc.replace_newline(export_data)
+    if filter_by_city  : export_data = processing.filter_by_city(export_data)
+    if flatten         : export_data = processing.convert_flat(export_data)
+    if convert_ascii   : export_data = processing.convert_ascii(export_data)
+    if replace_newline : export_data = processing.replace_newline(export_data)
 
     io.export_json(
       target_filename, export_data, indent=indent, **json_kwargs
