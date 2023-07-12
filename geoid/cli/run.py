@@ -4,7 +4,7 @@ from geoid.bigquery import BigQuery
 from geoid.common import webclient
 from geoid.config import Config
 from geoid.logging import LOG_CONFIG
-import logging, logging.config
+import logging, logging.config, os
 
 
 logger = logging.getLogger(__name__)
@@ -42,16 +42,22 @@ def run_batch(
       settings.
   """
 
+  #: Initialize logging
+  if not os.path.exists(r'./logs/'):
+    os.mkdir(r'./logs/')
+
   logging.config.dictConfig(LOG_CONFIG)
 
   config = use_config if use_config else Config()
 
+  #: Initialize querying
   querier = BigQuery(config)
   querier.target_filename   = output_file
   querier.autosave_filename = output_file + '.autosave'
 
   querier.import_new(source_file, keyword)
 
+  #: Initialize web client
   logger.info('Initializing web client')
   try:
     driver = init_webclient(config)
@@ -68,6 +74,7 @@ def run_batch(
   else:
     logger.info('Initialized web client')
 
+  #: Query
   try:
     querier = get_all(querier)
   finally:
@@ -77,6 +84,7 @@ def run_batch(
 
   querier.report_log()
 
+  #: Export
   if querier.count > 0:
     querier.export_json(output_file)
   else:
@@ -118,11 +126,13 @@ def init_webclient(config: Config):
 
 
 def get_all(querier: BigQuery):
-  while True:
+  running = True
+
+  while running:
     try:
       querier.get_one()
     except StopIteration:
-      break
+      running = False
     except Exception as e:
       logger.error(str(e))
       continue
