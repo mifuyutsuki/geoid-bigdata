@@ -107,7 +107,7 @@ def get_saved(data_object: dict):
 
   results = Results()
   results.metadata.status    = data_object[Keys.QUERY_STATUS]
-  results.metadata.query     = data_object[Keys.QUERY]
+  results.metadata.query     = data_object[Keys.QUERY_KEYWORD]
   results.metadata.lang      = data_object[Keys.QUERY_LANG]
   results.metadata.timestamp = data_object[Keys.QUERY_TIMESTAMP]
   results.results            = data_object[Keys.QUERY_RESULTS]

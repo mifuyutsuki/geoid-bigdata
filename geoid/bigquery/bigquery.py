@@ -266,8 +266,8 @@ class BigQuery:
       report_entry = new_report_entry.copy()
       report_entry[Keys.REPORT_NO] = index + 1
 
-      if Keys.QUERY in data_object:
-        report_entry[Keys.REPORT_QUERY] = data_object[Keys.QUERY]
+      if Keys.QUERY_KEYWORD in data_object:
+        report_entry[Keys.REPORT_QUERY] = data_object[Keys.QUERY_KEYWORD]
         report_entry[Keys.REPORT_STATUS] = data_object[Keys.QUERY_STATUS]
       else:
         report_entry[Keys.REPORT_STATUS] = Status.QUERY_MISSING

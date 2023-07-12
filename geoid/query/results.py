@@ -70,7 +70,7 @@ class Results:
 
   def report(self) -> dict:
     report_dump = {
-      Keys.QUERY               : self.metadata.query,
+      Keys.QUERY_KEYWORD               : self.metadata.query,
       Keys.QUERY_LANG          : self.metadata.lang,
       Keys.QUERY_TIMESTAMP     : self.metadata.timestamp,
       Keys.QUERY_STATUS        : self.metadata.status,

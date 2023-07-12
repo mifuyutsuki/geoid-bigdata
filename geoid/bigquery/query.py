@@ -19,10 +19,10 @@ def get_one(
   if data_object is None:
     return data_object, Status.QUERY_MISSING
   
-  if Keys.QUERY not in data_object:
+  if Keys.QUERY_KEYWORD not in data_object:
     return data_object, Status.QUERY_MISSING
   
-  if data_object[Keys.QUERY] is None:
+  if data_object[Keys.QUERY_KEYWORD] is None:
     return data_object, Status.QUERY_MISSING
   
   new_object = data_object.copy()
@@ -37,7 +37,7 @@ def get_one(
     return new_object, Status.QUERY_COMPLETE
   
   #: 3
-  query_ = new_object[Keys.QUERY]
+  query_ = new_object[Keys.QUERY_KEYWORD]
   results = query.get(query_, webdriver, use_config=config)
   new_object.update(results.report())
   
