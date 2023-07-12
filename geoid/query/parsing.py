@@ -39,7 +39,7 @@ def get_municipality_data(results: list):
     try:
       result = processing.proc_municipality(result)
     except Exception as e:
-      logger.error(str(e))
+      logger.exception(e)
       errors = errors + 1
       continue
   

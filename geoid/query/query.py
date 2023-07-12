@@ -57,7 +57,7 @@ def get(
     webdriver = scraping.get(query, webdriver, config)
     webdriver = scraping.scroll(webdriver, config)
   except Exception as e:
-    logger.error(str(e))
+    logger.exception(e)
     results.metadata.status = Status.QUERY_ERRORED
     return results
   
@@ -66,7 +66,7 @@ def get(
     results_html = scraping.grab(webdriver)
     results_list = parsing.parse_html(results_html, results.metadata)
   except Exception as e:
-    logger.error(str(e))
+    logger.exception(e)
     results.metadata.status = Status.QUERY_ERRORED
     return results
 
@@ -76,7 +76,7 @@ def get(
   except Exception as e:
     #: Note: Errors from acquiring individual municipality data are stored as
     #: error counts in municip_errors instead.
-    logger.error(str(e))
+    logger.exception(e)
     results.metadata.status = Status.QUERY_ERRORED
     return results
   
