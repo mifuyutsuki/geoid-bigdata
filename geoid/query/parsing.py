@@ -1,8 +1,7 @@
 from bs4 import BeautifulSoup
 
 from geoid.constants import Selectors
-from geoid.processing import results as processing
-from .metadata import Metadata
+from . import metadata, processing
 
 import logging
 
@@ -10,7 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def parse_html(grabbed_html: str, metadata: Metadata):
+def parse_html(grabbed_html: str, metadata: metadata.Metadata):
   logger.info(
     f'Processing results'
   )
@@ -20,7 +19,7 @@ def parse_html(grabbed_html: str, metadata: Metadata):
 
   for result_raw in results_raw:
     if result_raw is not None:
-      result = processing.proc_entry(
+      result = processing.get_entry_fields(
         result_raw, query_lang=metadata.lang
       )
       results.append(result)
@@ -37,7 +36,7 @@ def get_municipality_data(results: list):
 
   for result in new_results:
     try:
-      result = processing.proc_municipality(result)
+      result = processing.get_municipality_fields(result)
     except Exception as e:
       logger.exception(e)
       errors = errors + 1

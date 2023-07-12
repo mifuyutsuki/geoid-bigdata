@@ -1,51 +1,61 @@
 from bs4 import Tag
 from urllib.parse import quote_plus
-import requests
 import re
 
-from geoid.constants import Selectors, Links
+from geoid.constants import Selectors
 
-def get_municipality_data(latitude, longitude):
-  request = requests.get(
-    Links.MUNICIPALITY_QUERY_TARGET.format(
-      latitude=str(latitude), longitude=str(longitude)
-    ),
-    timeout=(3.5, 5.0)
-  )
-  request.raise_for_status()
-  return request.json()
 
-def get_province_id(code) -> str:
-  subcodes = re.findall(r'[0-9]+', code)
+#: Municipality fields
+
+def get_province_id(response: dict) -> str:
+  subcodes = re.findall(r'[0-9]+', response['code'])
   try:
     field  = ''.join(subcodes[0:1])
   except IndexError:
     field  = ''
   return field
 
-def get_city_id(code) -> str:
-  subcodes = re.findall(r'[0-9]+', code)
+def get_province_name(response: dict) -> str:
+  return response['province']
+
+def get_city_id(response: dict) -> str:
+  subcodes = re.findall(r'[0-9]+', response['code'])
   try:
     field  = ''.join(subcodes[0:2])
   except IndexError:
     field  = ''
   return field
 
-def get_district_id(code) -> str:
-  subcodes = re.findall(r'[0-9]+', code)
+def get_city_name(response: dict) -> str:
+  return response['city']
+
+def get_district_id(response: dict) -> str:
+  subcodes = re.findall(r'[0-9]+', response['code'])
   try:
     field  = ''.join(subcodes[0:3])
   except IndexError:
     field  = ''
   return field
 
-def get_village_id(code) -> str:
-  subcodes = re.findall(r'[0-9]+', code)
+def get_district_name(response: dict) -> str:
+  return response['district']
+
+def get_village_id(response: dict) -> str:
+  subcodes = re.findall(r'[0-9]+', response['code'])
   try:
     field  = ''.join(subcodes)
   except IndexError:
     field  = ''
   return field
+
+def get_village_name(response: dict) -> str:
+  return response['village']
+
+def get_postal_code(response: dict) -> str:
+  return response['postal']
+
+
+#: Entry fields
 
 def get_location_name(entry: Tag) -> str:
   field_selection = entry.select_one(Selectors.LOCATION_NAME_FIELD)
