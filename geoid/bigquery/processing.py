@@ -1,48 +1,90 @@
-import logging
-from copy import deepcopy
-
 from geoid.constants import Keys, Status
+
+import logging
 
 
 logger = logging.getLogger(__name__)
 
+BASE_DATA_OBJECT = {
+  Keys.QUERY_LOCATION      : None,
+  Keys.QUERY_KEYWORD       : None,
+  Keys.QUERY_LANG          : None,
+  Keys.QUERY_TIMESTAMP     : 0,
+  Keys.QUERY_STATUS        : Status.QUERY_INCOMPLETE,
+  Keys.QUERY_RESULTS_COUNT : 0,
+  Keys.QUERY_RESULTS       : []
+}
 
-def initialize(keyword: str, data: list[dict]) -> list[dict]:
-  new_data = deepcopy(data)
-  missings = 0
 
-  for index, data_object in enumerate(new_data):
-    #: Do this first for dict ordering reasons
-    if Keys.QUERY_LOCATION not in data_object:
-      missings = missings + 1
-      data_object[Keys.QUERY_LOCATION] = None
-    
-    data_object = initialize_object(data_object)
+def initialize(term: str, data: list[dict]) -> list[dict]:
+  """
+  Generate a queries data from an imported list of citynames in `data`.
 
-    if data_object[Keys.QUERY_LOCATION] is not None:
-      data_object[Keys.QUERY_KEYWORD] = f"{keyword} {data_object[Keys.QUERY_LOCATION]}"
+  For all non-missing citynames given by each object in `data`, generate a base
+  queries data containing queries of "`term` `cityname`" for all citynames in
+  `data`.
 
-    #: Using index assignment as otherwise new_data would not be modified
-    new_data[index] = data_object
+  Args:
+      term (str): Query term to which will be appended with citynames.
+      data (list[dict]): Array of objects containing citynames.
   
-  if missings > 0:
+  Returns:
+      List of dicts (array of objects) containing base query information.
+  """
+
+  queries_data     = []
+  locations_count  = 0
+  missings_count   = 0
+
+  for data_object in data:
+    query_object = _initialize_one(term, data_object)
+    if query_object is None:
+      missings_count += 1
+    else:
+      locations_count += 1
+      queries_data.append(query_object)
+  
+  if missings_count > 0:
     logger.warning(
-      f'Found {str(missings)} entry(s) with missing query term, '
-      f'which will be skipped'
+      f'Found {missings_count} entry(s) with missing query location, '
+      f'which is skipped'
     )
 
-  return new_data
+  return queries_data
 
 
-def initialize_object(data_object: dict) -> dict:
-  new_object = data_object.copy()
-  new_object[Keys.QUERY_KEYWORD]               = None
-  new_object[Keys.QUERY_LANG]          = ''
-  new_object[Keys.QUERY_TIMESTAMP]     = 0
-  new_object[Keys.QUERY_STATUS]        = Status.QUERY_INCOMPLETE
-  new_object[Keys.QUERY_RESULTS_COUNT] = 0
-  new_object[Keys.QUERY_RESULTS]       = []
-  return new_object
+def _initialize_one(term: str, data_object: dict) -> dict | None:
+  """
+  Generate a single query object from a cityname in `data_object`.
+
+  Generate a query object for query "`term` `cityname`" using cityname provided
+  by `data_object`. Cityname is given by a field of key `Keys.QUERY_LOCATION`.
+  If the requisite key is missing, this function returns None.
+
+  Args:
+      term (str): Query term which will be appended with cityname.
+      data_object (dict): Data object which contains cityname.
+  Returns:
+      Dict (object) containing base query information.
+      None if field of key `Keys.QUERY_LOCATION` from `data_object` is missing
+      or empty.
+  """
+
+  if Keys.QUERY_LOCATION not in data_object:
+    return None
+  
+  location = data_object[Keys.QUERY_LOCATION]
+  if location is None:
+    return None
+  if len(location) <= 0:
+    return None
+
+  query_object = BASE_DATA_OBJECT.copy()
+  query_object.update({
+    Keys.QUERY_LOCATION : location,
+    Keys.QUERY_KEYWORD  : f'{term} {location}'
+  })
+  return query_object
 
 
 def report_object(data_object: dict):

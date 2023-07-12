@@ -51,8 +51,8 @@ class BigQuery:
     source_filename: str,
     keyword: str
   ):
-    data = io.import_json(source_filename)
-    data = processing.initialize(keyword, data)
+    file_data = io.import_json(source_filename)
+    data = processing.initialize(keyword, file_data)
     #: verify?
 
     self.source_filename = source_filename
@@ -63,12 +63,15 @@ class BigQuery:
     self._count          = len(data)
     self._status_counts  = self.ZERO_STATUS_COUNTS
 
-    for data_object in data:
-      object_status = processing.report_object(data_object)
-      self._status_counts[object_status] += 1
+    # for data_object in data:
+    #   object_status = processing.report_object(data_object)
+    #   self._status_counts[object_status] += 1
 
     logger.info(
       f'Imported cities data JSON from "{source_filename}"'
+    )
+    logger.info(
+      f'Locations to query: {self._count}'
     )
 
 
