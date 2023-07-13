@@ -210,19 +210,17 @@ class BigQuery:
         f'Query object {str(self._progress)}/{str(self._count)} skipped '
         f'due to missing query'
       )
-    
     elif query_status == Status.QUERY_ERRORED:
       logger.error(
         f'Could not complete query {str(self._progress)}/{str(self._count)}'
       )
-
     elif query_status == Status.QUERY_COMPLETE:
       logger.info(
         f'Completed query {str(self._progress)}/{str(self._count)}'
       )
-      if self._progress % self.config.fileio.autosave_every == 0:
+      if (self.autosave_filename is not None) and \
+         (self._progress % self.config.fileio.autosave_every == 0):
         self.autosave()
-    
     elif query_status == Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING:
       logger.info(
         f'Completed query {str(self._progress)}/{str(self._count)}'
@@ -231,7 +229,8 @@ class BigQuery:
         f'Query {str(self._progress)}/{str(self._count)} '
         f'contains missing municipality data'
       )
-      if self._progress % self.config.fileio.autosave_every == 0:
+      if (self.autosave_filename is not None) and \
+         (self._progress % self.config.fileio.autosave_every == 0):
         self.autosave()
     
     return query_status
