@@ -6,7 +6,7 @@ import logging
 from geoid.common import io
 from geoid.config import Config
 from geoid.constants import Status, Keys
-from . import processing, query
+from . import preprocessing, postprocessing, query
 
 
 logger = logging.getLogger(__name__)
@@ -20,7 +20,6 @@ class BigQuery:
     Status.QUERY_COMPLETE                        : 0,
     Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING : 0
   }
-
   BASE_STATUS_OBJECTS = {
     Status.QUERY_INCOMPLETE                      : [],
     Status.QUERY_MISSING                         : [],
@@ -28,6 +27,7 @@ class BigQuery:
     Status.QUERY_COMPLETE                        : [],
     Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING : []
   }
+  
   
   def __init__(self, use_config: Config=None):
     self.webdriver = None
@@ -49,7 +49,7 @@ class BigQuery:
     term: str,
     cities: list[str]
   ):
-    data = processing.initialize_from_list(term, cities)
+    data = preprocessing.initialize_from_list(term, cities)
 
     self.data            = data
     self.querier         = None
@@ -65,13 +65,14 @@ class BigQuery:
       f'Locations to query: {self._count}'
     )
 
+
   def import_source(
     self,
     term: str,
     source_filename: str
   ):
     file_data = io.import_json(source_filename)
-    data = processing.initialize_from_data(term, file_data)
+    data = preprocessing.initialize_from_data(term, file_data)
     #: verify?
 
     self.data            = data
@@ -146,10 +147,10 @@ class BigQuery:
 
     export_data = deepcopy(self.data)
 
-    if filter_by_city  : export_data = processing.filter_by_city(export_data)
-    if flatten         : export_data = processing.convert_flat(export_data)
-    if convert_ascii   : export_data = processing.convert_ascii(export_data)
-    if replace_newline : export_data = processing.replace_newline(export_data)
+    if filter_by_city  : export_data = postprocessing.filter_by_city(export_data)
+    if flatten         : export_data = postprocessing.convert_flat(export_data)
+    if convert_ascii   : export_data = postprocessing.convert_ascii(export_data)
+    if replace_newline : export_data = postprocessing.replace_newline(export_data)
 
     io.export_json(
       target_filename, export_data, indent=indent, **json_kwargs
