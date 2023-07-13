@@ -47,9 +47,10 @@ def convert_flat(data: list[dict]) -> list[dict]:
     
     head_object = dict()
     for key in query_object.keys():
-      #: Whitelist only query information keys
+      #: Include only some query keys
       if key in (
-        Keys.QUERY_LOCATION, Keys.QUERY_KEYWORD, Keys.QUERY_LANG, Keys.QUERY_TIMESTAMP
+        Keys.QUERY_TERM, Keys.QUERY_LOCATION, Keys.QUERY_KEYWORD, \
+        Keys.QUERY_LANG, Keys.QUERY_TIMESTAMP
       ):
         head_object[key] = query_object[key]
 

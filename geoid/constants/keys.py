@@ -20,9 +20,10 @@ class Keys:
   IMAGE_LINK    = 'image_link'
 
   #: Query results keys
+  QUERY_TERM          = 'query_term'
+  QUERY_LOCATION      = 'query_location'
   QUERY_KEYWORD       = 'query_keyword'
   QUERY_LANG          = 'query_lang'
-  QUERY_LOCATION      = 'query_location'
   QUERY_TIMESTAMP     = 'query_timestamp'
   QUERY_STATUS        = 'query_status'
   QUERY_RESULTS_COUNT = 'query_results_count'

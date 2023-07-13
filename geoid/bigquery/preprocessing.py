@@ -5,6 +5,7 @@ from geoid.constants import Keys, Status
 logger = logging.getLogger(__name__)
 
 BASE_DATA_OBJECT = {
+  Keys.QUERY_TERM          : None,
   Keys.QUERY_LOCATION      : None,
   Keys.QUERY_KEYWORD       : None,
   Keys.QUERY_LANG          : None,
@@ -120,6 +121,7 @@ def _initialize_one(term: str, location: str):
 
   query_object = BASE_DATA_OBJECT.copy()
   query_object.update({
+    Keys.QUERY_TERM     : term,
     Keys.QUERY_LOCATION : location,
     Keys.QUERY_KEYWORD  : f'{term} {location}'
   })
