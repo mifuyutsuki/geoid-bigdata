@@ -33,7 +33,6 @@ class BigQuery:
     self.webdriver = None
     self.config    = use_config if use_config else Config()
 
-    self.source_filename   = None
     self.target_filename   = None
     self.autosave_filename = None
 
@@ -45,16 +44,13 @@ class BigQuery:
     self._status_counts = self.BASE_STATUS_COUNTS
   
 
-  def import_new(
+  def import_list(
     self,
-    source_filename: str,
-    keyword: str
+    term: str,
+    cities: list[str]
   ):
-    file_data = io.import_json(source_filename)
-    data = processing.initialize(keyword, file_data)
-    #: verify?
+    data = processing.initialize_from_list(term, cities)
 
-    self.source_filename = source_filename
     self.data            = data
     self.querier         = None
 
@@ -62,9 +58,28 @@ class BigQuery:
     self._count          = len(data)
     self._status_counts  = self.BASE_STATUS_COUNTS
 
-    # for data_object in data:
-    #   object_status = processing.report_object(data_object)
-    #   self._status_counts[object_status] += 1
+    logger.info(
+      f'Imported list of cities'
+    )
+    logger.info(
+      f'Locations to query: {self._count}'
+    )
+
+  def import_source(
+    self,
+    term: str,
+    source_filename: str
+  ):
+    file_data = io.import_json(source_filename)
+    data = processing.initialize_from_data(term, file_data)
+    #: verify?
+
+    self.data            = data
+    self.querier         = None
+
+    self._progress       = 0
+    self._count          = len(data)
+    self._status_counts  = self.BASE_STATUS_COUNTS
 
     logger.info(
       f'Imported cities data JSON from "{source_filename}"'
@@ -92,6 +107,7 @@ class BigQuery:
     logger.info(
       f'Imported save data JSON from "{source_filename}"'
     )
+
 
   def export_json(
     self,

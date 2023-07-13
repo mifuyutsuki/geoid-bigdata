@@ -16,7 +16,7 @@ BASE_DATA_OBJECT = {
 }
 
 
-def initialize(term: str, data: list[dict]) -> list[dict]:
+def initialize_from_data(term: str, data: list[dict]) -> list[dict]:
   """
   Generate a queries data from an imported list of citynames in `data`.
 
@@ -32,12 +32,12 @@ def initialize(term: str, data: list[dict]) -> list[dict]:
       List of dicts (array of objects) containing base query information.
   """
 
-  queries_data     = []
-  locations_count  = 0
-  missings_count   = 0
+  queries_data    = []
+  locations_count = 0
+  missings_count  = 0
 
   for data_object in data:
-    query_object = _initialize_one(term, data_object)
+    query_object = _initialize_one_from_data(term, data_object)
     if query_object is None:
       missings_count += 1
     else:
@@ -53,7 +53,43 @@ def initialize(term: str, data: list[dict]) -> list[dict]:
   return queries_data
 
 
-def _initialize_one(term: str, data_object: dict) -> dict | None:
+def initialize_from_list(term: str, locations: list[str]) -> list[dict]:
+  """
+  Generate a queries data from a list (array) of citynames in `locations`.
+
+  For all non-empty citynames in `locations`, generate a base queries data
+  containing queries of "`term` `cityname`" for all citynames in `locations`.
+
+  Args:
+      term (str): Query term to which will be appended with citynames.
+      locations (list[str]): Array of locations or citynames.
+  
+  Returns:
+      List of dicts (array of objects) containing base query information.
+  """
+
+  queries_data    = []
+  locations_count = 0
+  missings_count  = 0
+
+  for location in locations:
+    query_object = _initialize_one(term, location)
+    if query_object is None:
+      missings_count += 1
+    else:
+      locations_count += 1
+      queries_data.append(query_object)
+  
+  if missings_count > 0:
+    logger.warning(
+      f'Found {missings_count} entry(s) with missing query location, '
+      f'which is skipped'
+    )
+
+  return queries_data
+
+
+def _initialize_one_from_data(term: str, data_object: dict) -> dict | None:
   """
   Generate a single query object from a cityname in `data_object`.
 
@@ -70,10 +106,14 @@ def _initialize_one(term: str, data_object: dict) -> dict | None:
       or empty.
   """
 
-  if Keys.QUERY_LOCATION not in data_object:
+  location = _get_location_from_data(data_object)
+  if location is None:
     return None
-  
-  location = data_object[Keys.QUERY_LOCATION]
+
+  return _initialize_one(term, location)
+
+
+def _initialize_one(term: str, location: str):
   if location is None:
     return None
   if len(location) <= 0:
@@ -85,6 +125,19 @@ def _initialize_one(term: str, data_object: dict) -> dict | None:
     Keys.QUERY_KEYWORD  : f'{term} {location}'
   })
   return query_object
+
+
+def _get_location_from_data(data_object: dict):
+  if Keys.QUERY_LOCATION not in data_object:
+    return None
+  
+  location = data_object[Keys.QUERY_LOCATION]
+  if location is None:
+    return None
+  if len(location) <= 0:
+    return None
+
+  return location
 
 
 def filter_by_city(data: list[dict]) -> list[dict]:

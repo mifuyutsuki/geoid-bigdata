@@ -55,7 +55,7 @@ def run_batch(
   querier.target_filename   = output_file
   querier.autosave_filename = output_file + '.autosave'
 
-  querier.import_new(source_file, keyword)
+  querier.import_source(keyword, source_file)
 
   if querier.count <= 0:
     logger.warning(
