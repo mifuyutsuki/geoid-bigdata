@@ -67,7 +67,7 @@ def get_municipality_fields(result_entry: dict) -> dict:
     Keys.POSTAL_CODE   : fields.get_postal_code(response)
   })
 
-  return result_entry
+  return new_result_entry
 
 
 def _get_municipality_data(latitude: str, longitude: str) -> dict:

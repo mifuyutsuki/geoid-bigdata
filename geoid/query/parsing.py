@@ -27,16 +27,16 @@ def parse_html(grabbed_html: str, metadata: metadata.Metadata):
   return results
 
 
-def get_municipality_data(results: list):
+def get_municipality_data(results: list[dict]):
   logger.info(
     f'Getting municipality data'
   )
   new_results = results.copy()
   errors = 0
 
-  for result in new_results:
+  for index, result in enumerate(results):
     try:
-      result = processing.get_municipality_fields(result)
+      new_results[index] = processing.get_municipality_fields(result)
     except Exception as e:
       logger.exception(e)
       errors = errors + 1
