@@ -1,7 +1,7 @@
 from geoid.version import __version__
 from geoid.config import Config
 
-from .run import run_batch
+from .run import run_list, run_batch
 from .parser import build
 
 import time
@@ -43,22 +43,25 @@ def start():
   config.postproc.convert_ascii      = args.convert_ascii
   config.postproc.replace_newline    = args.replace_newline
 
-  if args.cities is None:
-    # print(
-    #   f'Starting single query.'
-    #   f'Query keyword: "{args.keyword}"'
-    # )
+  if args.cities_file is None and args.cities is not None:
     print(
-      'Single mode is still work in progress.'
+      f'Starting query, source: list.\n'
+      f'Query keyword: "{args.term} <cityname>"'
     )
-  else:
+    run_list(
+      term=args.term,
+      cities=args.cities,
+      output_file=output_file,
+      use_config=config
+    )
+  elif args.cities_file is not None and args.cities is None:
     print(
-      f'Starting batch query.\n'
-      f'Query keyword: "{args.keyword} <cityname>"'
+      f'Starting query, source: file.\n'
+      f'Query keyword: "{args.term} <cityname>"'
     )
     run_batch(
-      keyword=args.keyword,
-      source_file=args.cities,
+      term=args.term,
+      source_file=args.cities_file,
       output_file=output_file,
       use_config=config
     )

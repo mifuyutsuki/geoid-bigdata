@@ -10,18 +10,24 @@ import logging, logging.config, os
 logger = logging.getLogger(__name__)
 
 
+def _start_logging():
+  if not os.path.exists(r'./logs/'):
+    os.mkdir(r'./logs/')
+  logging.config.dictConfig(LOG_CONFIG)
+
+
 def run_batch(
-  keyword: str,
+  term: str,
   source_file: str,
   output_file: str,
   *,
   use_config:Config=None
 ):
   """
-  Launch a batch query for "keyword cityname" for citynames in `source_file`.
+  Launch a query for "term cityname" for citynames in file `source_file`.
 
-  Launch `keyword` and list of city names given in JSON file `source_file`,
-  start a batch query for "keyword cityname" and output its results to JSON
+  Given `term` and list of city names given in JSON file `source_file`,
+  start a batch query for "term cityname" and output its results to JSON
   file `output_file`.
   
   Using `use_config` settings, query results may be postprocessed, for example
@@ -33,7 +39,7 @@ def run_batch(
   be changed in `use_config`.
 
   Args:
-      keyword (str): Query keyword which will prepend the citynames.
+      term (str): Query term which will prepend the citynames.
       source_file (str): Input JSON file containing citynames.
       output_file (str): Output JSON file containing query results.
 
@@ -42,21 +48,62 @@ def run_batch(
       settings.
   """
 
-  #: Initialize logging
-  if not os.path.exists(r'./logs/'):
-    os.mkdir(r'./logs/')
-
-  logging.config.dictConfig(LOG_CONFIG)
-
+  _start_logging()
   config = use_config if use_config else Config()
 
-  #: Initialize querying
   querier = BigQuery(config)
   querier.target_filename   = output_file
   querier.autosave_filename = output_file + '.autosave'
 
-  querier.import_source(keyword, source_file)
+  querier.import_source(term, source_file)
 
+  _run(querier, config)
+
+
+def run_list(
+  term: str,
+  cities: list[str],
+  output_file: str,
+  *,
+  use_config: Config=None
+):
+  """
+  Launch a query for "term cityname" for citynames in array `cities`.
+
+  Given `term` and list of city names given in array  `cities`, start a batch
+  query for "term cityname" and output its results to JSON file `output_file`.
+  
+  Using `use_config` settings, query results may be postprocessed, for example
+  to filter for city-mismatched results and/or flatten to a single-layered JSON
+  array of objects.
+
+  In addition, the function may also create unpostprocessed autosave file
+  `output_file.autosave` as well as log file `./logs/timestamp.log`. This may
+  be changed in `use_config`.
+
+  Args:
+      term (str): Query term which will prepend the citynames.
+      cities (list of str): List or array of citynames.
+      output_file (str): Output JSON file containing query results.
+
+  Kwargs:
+      use_config (Config): Config object containing advanced query and program
+      settings.
+  """
+
+  _start_logging()
+  config = use_config if use_config else Config()
+
+  querier = BigQuery(config)
+  querier.target_filename   = output_file
+  querier.autosave_filename = output_file + '.autosave'
+
+  querier.import_list(term, cities)
+
+  _run(querier, config)
+
+
+def _run(querier: BigQuery, config: Config):
   if querier.count <= 0:
     logger.warning(
       'No queries to start'
@@ -66,14 +113,8 @@ def run_batch(
   #: Initialize web client
   logger.info('Initializing web client')
   try:
-    driver = init_webclient(config)
+    driver = _init_webclient(config)
     querier.initialize(driver)
-  except WebDriverException as e:
-    logger.exception(e)
-    logger.error(
-      'Unable to initialize web client'
-    )
-    return
   except Exception as e:
     logger.exception(e)
     return
@@ -82,7 +123,7 @@ def run_batch(
 
   #: Query
   try:
-    querier = get_all(querier)
+    querier = _get_all(querier)
   finally:
     logger.info('Terminating web client')
     driver.quit()
@@ -92,12 +133,12 @@ def run_batch(
 
   #: Export
   if querier.count > 0:
-    querier.export_json(output_file)
+    querier.export_json(querier.target_filename)
   else:
     logger.info('No entries to export')
 
 
-def init_webclient(config: Config):
+def _init_webclient(config: Config):
   """
   Initialize a Selenium web client.
 
@@ -131,7 +172,7 @@ def init_webclient(config: Config):
   return driver
 
 
-def get_all(querier: BigQuery):
+def _get_all(querier: BigQuery):
   running = True
 
   while running:
