@@ -162,7 +162,7 @@ def _scroll_one(
   else:
     return_status = SCROLL_FAILURE
     
-  return return_status, results_count_after
+  return return_status
 
 
 def _count_results(webdriver: WebDriver):
