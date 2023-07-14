@@ -7,23 +7,23 @@ import requests
 
 
 BASE_RESULT_ENTRY = {
-  Keys.LOCATION_NAME : '',
-  Keys.LOCATION_TYPE : '',
-  Keys.LATITUDE      : '',
-  Keys.LONGITUDE     : '',
-  Keys.PROVINCE_ID   : '',
-  Keys.PROVINCE_NAME : '',
-  Keys.CITY_ID       : '',
-  Keys.CITY_NAME     : '',
-  Keys.DISTRICT_ID   : '',
-  Keys.DISTRICT_NAME : '',
-  Keys.VILLAGE_ID    : '',
-  Keys.VILLAGE_NAME  : '',
-  Keys.POSTAL_CODE   : '',
-  Keys.RATING        : '',
-  Keys.REVIEWS       : '',
-  Keys.DESCRIPTION   : '',
-  Keys.LOCATION_LINK : ''
+  Keys.LOCATION_NAME : None,
+  Keys.LOCATION_TYPE : None,
+  Keys.LATITUDE      : None,
+  Keys.LONGITUDE     : None,
+  Keys.PROVINCE_ID   : None,
+  Keys.PROVINCE_NAME : None,
+  Keys.CITY_ID       : None,
+  Keys.CITY_NAME     : None,
+  Keys.DISTRICT_ID   : None,
+  Keys.DISTRICT_NAME : None,
+  Keys.VILLAGE_ID    : None,
+  Keys.VILLAGE_NAME  : None,
+  Keys.POSTAL_CODE   : None,
+  Keys.RATING        : None,
+  Keys.REVIEWS       : None,
+  Keys.DESCRIPTION   : None,
+  Keys.LOCATION_LINK : None
 }
 
 
@@ -49,7 +49,7 @@ def get_entry_fields(entry: Tag, query_lang='id') -> dict:
 def get_municipality_fields(result_entry: dict) -> dict:
   latitude  = result_entry[Keys.LATITUDE]
   longitude = result_entry[Keys.LONGITUDE]
-  if (latitude == '' or longitude == ''):
+  if (latitude is None or longitude is None):
     raise ValueError('Latitude/longitude field is empty')
   
   response = _get_municipality_data(latitude, longitude)
@@ -70,10 +70,10 @@ def get_municipality_fields(result_entry: dict) -> dict:
   return new_result_entry
 
 
-def _get_municipality_data(latitude: str, longitude: str) -> dict:
+def _get_municipality_data(latitude, longitude) -> dict:
   request = requests.get(
     Links.MUNICIPALITY_QUERY_TARGET.format(
-      latitude=str(latitude), longitude=str(longitude)
+      latitude=latitude, longitude=longitude
     ),
     timeout=(3.5, 5.0)
   )
