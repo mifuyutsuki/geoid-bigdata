@@ -1,3 +1,5 @@
+from .version import __version__
+
 from . import bigquery
 from . import query
 from . import common
