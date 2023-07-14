@@ -177,6 +177,30 @@ class BigQuery:
     )
 
 
+  def remove_autosave_if_set(self):
+    autosave_filename = self.autosave_filename
+    autosave_enabled = \
+      (self.config.fileio.autosave_every > 0) and \
+      (not self.config.fileio.keep_autosave)
+
+    if autosave_filename is not None and autosave_enabled:
+      self._remove_autosave()
+
+
+  def _remove_autosave(self):
+    try:
+      io.remove_file(self.autosave_filename)
+    except FileNotFoundError:
+      logger.info(
+        f'No autosave to remove "{self.autosave_filename}"'
+      )
+    else:
+      logger.info(
+        f'Removed autosave "{self.autosave_filename}"'
+      )
+
+
+
   def initialize(self, webdriver: WebDriver):
     self.webdriver      = webdriver
     self.querier        = self._get_one_iter()

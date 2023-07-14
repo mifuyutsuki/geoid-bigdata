@@ -136,6 +136,7 @@ def _run(querier: BigQuery, config: Config):
     querier.export_json(querier.target_filename)
   else:
     logger.info('No entries to export')
+  querier.remove_autosave_if_set()
 
 
 def _init_webclient(config: Config):
