@@ -200,10 +200,9 @@ class BigQuery:
       )
 
 
-
   def initialize(self, webdriver: WebDriver):
     self.webdriver      = webdriver
-    self.querier        = self._get_one_iter()
+    self.querier        = query.get_iterator(self.data, webdriver, self.config)
     self._progress      = 0
     self._status_counts = self.BASE_STATUS_COUNTS
 
@@ -214,62 +213,24 @@ class BigQuery:
         'BigQuery must be initialized with initialize() to begin querying'
       )
     if self._progress >= self._count:
-      logger.info(
-        'Reached end of query'
-      )
       self.report_log()
       raise StopIteration('Reached end of query')
     
-    index = self._progress
-    self._progress = index + 1
-    logger.info(
-      f'Query progress: ({str(self._progress)}/{str(self._count)})'
-    )
-
-    query_status = next(self.querier)
+    new_query_object, index, query_status = next(self.querier)
+    self.data[index] = new_query_object
+    self._progress += 1
     self._status_counts[query_status] += 1
 
-    if query_status == Status.QUERY_MISSING:
-      logger.warning(
-        f'Query object {str(self._progress)}/{str(self._count)} skipped '
-        f'due to missing query'
-      )
-    elif query_status == Status.QUERY_ERRORED:
-      logger.error(
-        f'Could not complete query {str(self._progress)}/{str(self._count)}'
-      )
-    elif query_status == Status.QUERY_COMPLETE:
-      logger.info(
-        f'Completed query {str(self._progress)}/{str(self._count)}'
-      )
-      if (self.autosave_filename is not None) and \
-         (self._progress % self.config.fileio.autosave_every == 0):
-        self.autosave()
-    elif query_status == Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING:
-      logger.info(
-        f'Completed query {str(self._progress)}/{str(self._count)}'
-      )
-      logger.warning(
-        f'Query {str(self._progress)}/{str(self._count)} '
-        f'contains missing municipality data'
-      )
-      if (self.autosave_filename is not None) and \
-         (self._progress % self.config.fileio.autosave_every == 0):
-        self.autosave()
+    status_completed = \
+      (query_status == Status.QUERY_COMPLETE) or \
+      (query_status == Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING)
+    do_autosave      = \
+      (self.autosave_filename is not None) and \
+      (self._progress % self.config.fileio.autosave_every == 0)
+    if status_completed and do_autosave:
+      self.autosave()
     
     return query_status
-
-
-  def _get_one_iter(self):
-    for index, data_object in enumerate(self.data):
-      new_object, query_status = query.get_one(
-        data_object, self.webdriver, self.config
-      )
-
-      if new_object is not None:
-        self.data[index] = new_object
-      
-      yield query_status
   
 
   def report_log(self):

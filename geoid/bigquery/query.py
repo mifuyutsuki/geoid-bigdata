@@ -10,6 +10,27 @@ from geoid.query import query
 logger = logging.getLogger(__name__)
 
 
+def get_iterator(
+  queries_data: list[dict],
+  webdriver: WebDriver,
+  config: Config
+):
+  queries_count = len(queries_data)
+  for index, data_object in enumerate(queries_data):
+    logger.info(
+      f'Query progress: ({index+1}/{queries_count})'
+    )
+    new_object, query_status = get_one(
+      data_object, webdriver, config
+    )
+    
+    yield new_object, index, query_status
+  
+  logger.info(
+    'Reached end of query'
+  )
+
+
 def get_one(
   data_object: dict,
   webdriver: WebDriver,
@@ -40,5 +61,27 @@ def get_one(
   query_ = new_object[Keys.QUERY_KEYWORD]
   results = query.get(query_, webdriver, use_config=config)
   new_object.update(results.report())
+
+  #: 4
+  query_status = results.metadata.status
+  if query_status == Status.QUERY_MISSING:
+    logger.warning(
+      f'Query object skipped due to missing query'
+    )
+  elif query_status == Status.QUERY_ERRORED:
+    logger.error(
+      f'Could not complete query'
+    )
+  elif query_status == Status.QUERY_COMPLETE:
+    logger.info(
+      f'Completed query'
+    )
+  elif query_status == Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING:
+    logger.info(
+      f'Completed query'
+    )
+    logger.warning(
+      f'Query contains missing municipality data'
+    )
   
-  return new_object, results.metadata.status
+  return new_object, query_status
