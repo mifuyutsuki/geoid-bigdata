@@ -47,6 +47,7 @@ def get_one(
     return data_object, Status.QUERY_MISSING
   
   new_object = data_object.copy()
+  query_keyword = data_object[Keys.QUERY_KEYWORD]
 
   if Keys.QUERY_STATUS not in new_object:
     new_object[Keys.QUERY_STATUS] = Status.QUERY_INCOMPLETE
@@ -66,22 +67,22 @@ def get_one(
   query_status = results.metadata.status
   if query_status == Status.QUERY_MISSING:
     logger.warning(
-      f'Query object skipped due to missing query'
+      f'Query object skipped due to missing query: {query_keyword}'
     )
   elif query_status == Status.QUERY_ERRORED:
     logger.error(
-      f'Could not complete query'
+      f'Could not do query, continuing: {query_keyword}'
     )
   elif query_status == Status.QUERY_COMPLETE:
     logger.info(
-      f'Completed query'
+      f'Completed query: {query_keyword}'
     )
   elif query_status == Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING:
     logger.info(
-      f'Completed query'
+      f'Completed query: {query_keyword}'
     )
     logger.warning(
-      f'Query contains missing municipality data'
+      f'Query contains missing municipality data: {query_keyword}'
     )
   
   return new_object, query_status
