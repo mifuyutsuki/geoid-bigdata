@@ -39,7 +39,7 @@ def start_query(args):
 
   if args.cities is not None:
     print(
-      f'Starting query, source: list.\n'
+      f'Launcing query, source: list.\n'
       f'Query keyword: "{args.term} <cityname>"'
     )
     log_start(args.show_info)
@@ -51,7 +51,7 @@ def start_query(args):
     )
   elif args.cities_file is not None:
     print(
-      f'Starting query, source: file.\n'
+      f'Launching query, source: file.\n'
       f'Query keyword: "{args.term} <cityname>"'
     )
     log_start(args.show_info)
@@ -154,6 +154,13 @@ def _run(querier: BigQuery, config: Config):
       'No queries to start'
     )
     return
+  
+  logger.info(
+    f'Number of query keywords to execute: {querier.count}'
+  )
+  print(
+    f'Number of query keywords to execute: {querier.count}'
+  )
 
   #: Initialize web client
   logger.info('Initializing web client')
@@ -168,6 +175,7 @@ def _run(querier: BigQuery, config: Config):
 
   #: Query
   try:
+    print('')
     querier = _get_all(querier)
   finally:
     logger.info('Terminating web client')
@@ -179,6 +187,10 @@ def _run(querier: BigQuery, config: Config):
   #: Export
   if querier.count > 0:
     querier.export_json(querier.target_filename)
+    print('')
+    print(
+      f'Exported to JSON file "{querier.target_filename}"'
+    )
   else:
     logger.info('No entries to export')
   querier.remove_autosave_if_set()
@@ -223,11 +235,17 @@ def _get_all(querier: BigQuery):
 
   while running:
     try:
+      print(
+        f'Querying: {querier.progress+1}/{querier.count}'
+      )
       querier.get_one()
     except StopIteration:
       running = False
     except Exception as e:
       logger.error(str(e))
       continue
+    
+    if querier.progress == querier.count:
+      running = False
   
   return querier
