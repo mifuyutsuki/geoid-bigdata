@@ -57,6 +57,16 @@ def build():
 
   # ===========================================================================
 
+  global_args = parser.add_argument_group('Global options')
+  global_args.add_argument(
+    '--show-info-logs',
+    action='store_true',
+    help='Show INFO logs to terminal in addition to WARNING logs',
+    dest='show_info'
+  )
+
+  # ===========================================================================
+
   parser_query = subparsers.add_parser(
     'query',
     help='Launch a query',

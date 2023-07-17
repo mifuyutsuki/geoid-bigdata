@@ -55,6 +55,13 @@ def _check_folder():
     os.mkdir(r'./logs/')
 
 
+def log_start(show_info=False):
+  if show_info:
+    log_info()
+  else:
+    log_std()
+
+
 def log_std():
   """
   Start logging with level WARNING on stdout and INFO file.

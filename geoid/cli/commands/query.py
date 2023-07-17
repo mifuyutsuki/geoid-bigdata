@@ -3,7 +3,7 @@ from selenium.common.exceptions import *
 from geoid.bigquery import BigQuery
 from geoid.common import webclient
 from geoid.config import Config
-from geoid.logging import log_std
+from geoid.logging import log_start
 import logging, logging.config, time
 
 
@@ -37,22 +37,24 @@ def start_query(args):
   config.postproc.convert_ascii      = args.convert_ascii
   config.postproc.replace_newline    = args.replace_newline
 
-  if args.cities_file is None and args.cities is not None:
+  if args.cities is not None:
     print(
       f'Starting query, source: list.\n'
       f'Query keyword: "{args.term} <cityname>"'
     )
+    log_start(args.show_info)
     run_list(
       term=args.term,
       cities=args.cities,
       output_file=output_file,
       use_config=config
     )
-  elif args.cities_file is not None and args.cities is None:
+  elif args.cities_file is not None:
     print(
       f'Starting query, source: file.\n'
       f'Query keyword: "{args.term} <cityname>"'
     )
+    log_start(args.show_info)
     run_batch(
       term=args.term,
       source_file=args.cities_file,
@@ -93,7 +95,6 @@ def run_batch(
       settings.
   """
 
-  log_std()
   config = use_config if use_config else Config()
 
   querier = BigQuery(config)
@@ -136,7 +137,6 @@ def run_list(
       settings.
   """
 
-  log_std
   config = use_config if use_config else Config()
 
   querier = BigQuery(config)
