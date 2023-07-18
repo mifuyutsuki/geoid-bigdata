@@ -4,7 +4,6 @@ from time import time
 import logging
 
 from . import scraping, parsing
-from .results import Results
 from geoid.config import Config
 from geoid.constants import Status, Keys
 
@@ -13,10 +12,10 @@ logger = logging.getLogger(__name__)
 
 
 def get(
-  query: str,
+  query_object: dict,
   webdriver: WebDriver,
   use_config:Config=None
-):
+) -> dict:
   """
   Search GMaps for `query` and return results of places.
 
@@ -37,94 +36,88 @@ def get(
   Returns:
       Results object containing query information and results.
   """
-
-  if len(query) <= 0:
-    raise ValueError('Query key must not be empty')
   
   config = use_config if use_config else Config()
+
+  new_query_object = query_object.copy()
+
+  #: 0 - Checking
+  if Keys.QUERY_KEYWORD not in new_query_object:
+    return _update_status(new_query_object, Status.QUERY_MISSING)
   
-  results = Results()
-  results.metadata.status    = Status.QUERY_INCOMPLETE
-  results.metadata.query     = query
-  results.metadata.lang      = config.query.lang
-  results.metadata.timestamp = int(time())
+  query = new_query_object[Keys.QUERY_KEYWORD]
+  if len(query) <= 0:
+    return _update_status(new_query_object, Status.QUERY_MISSING)
 
   #: Each try block represents a different process, which will output
   #: different line numbers in logs.
 
-  try:
-  #: 1 - Scraping
-    webdriver = scraping.get(query, webdriver, config)
-    webdriver = scraping.scroll(webdriver, config)
-  except Exception as e:
-    logger.exception(e)
-    results.metadata.status = Status.QUERY_ERRORED
-    return results
-  
-  try:
-  #: 2 - Parsing
-    results_html = scraping.grab(webdriver)
-    results_list = parsing.parse_html(results_html, results.metadata)
-  except Exception as e:
-    logger.exception(e)
-    results.metadata.status = Status.QUERY_ERRORED
-    return results
+  #: 1 - Initializing
+  query_status = new_query_object[Keys.QUERY_STATUS]
 
+  query_lang = new_query_object[Keys.QUERY_LANG]
+  if query_lang is None:
+    query_lang = config.query.lang
+  if len(query_lang) <= 0:
+    query_lang = config.query.lang
+
+  if query_status == Status.QUERY_COMPLETE or \
+     query_status == Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING:
+    #: Go straight for municipality get
+    results_list = new_query_object[Keys.QUERY_RESULTS]
+
+  else:
+    new_query_object.update({
+      Keys.QUERY_LANG      : query_lang,
+      Keys.QUERY_TIMESTAMP : int(time())
+    })
+
+  #: 2 - Scraping
+    try:
+      webdriver = scraping.get(query, webdriver, config, use_lang=query_lang)
+      webdriver = scraping.scroll(webdriver, config)
+    except Exception as e:
+      logger.exception(e)
+      return _update_status(new_query_object, Status.QUERY_ERRORED)
+    
+  #: 3 - Parsing
+    try:
+      results_html = scraping.grab(webdriver)
+      results_list = parsing.parse_html(results_html, query_lang)
+    except Exception as e:
+      logger.exception(e)
+      return _update_status(new_query_object, Status.QUERY_ERRORED)
+  
+  #: 4 - Municipality data
   try:
-  #: 3 - Municipality data
     results_list, municip_errors = parsing.get_municipality_data(results_list)
   except Exception as e:
     #: Note: Errors from acquiring individual municipality data are stored as
     #: error counts in municip_errors instead.
     logger.exception(e)
-    results.metadata.status = Status.QUERY_ERRORED
-    return results
+    return _update_status(new_query_object, Status.QUERY_ERRORED)
   
-  #: 4 - Output
-  results.results         = results_list
-  results.count           = len(results_list)
+  #: 5 - Output
+  new_query_object = _update_entries(new_query_object, results_list)
+  
   if municip_errors > 0:
-    results.metadata.status = Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING
+    return _update_status(new_query_object, Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING)
   else:
-    results.metadata.status = Status.QUERY_COMPLETE
-
-  return results
+    return _update_status(new_query_object, Status.QUERY_COMPLETE)
 
 
-def get_municipalities_only(data_object: dict):
-  """
-  (Re-)retrieve municipalities data from a query object.
+def _update_status(query_object: dict, query_status) -> dict:
+  new_query_object = query_object.copy()
+  new_query_object.update({
+    Keys.QUERY_STATUS : query_status
+  })
+  return new_query_object
 
-  Called when querying from a save with missing municipalities data.
 
-  Args:
-      data_object (dict): Query object dictionary containing query information
-      and results.
-  
-  Returns:
-      Results object containing query information and results.
-  """
-
-  results = Results()
-  results.from_query_object(data_object)
-  results_list = results.results
-
-  try:
-  #: 3 - Municipality data
-    results_list, municip_errors = parsing.get_municipality_data(results_list)
-  except Exception as e:
-    #: Note: Errors from acquiring individual municipality data are stored as
-    #: error counts in municip_errors instead.
-    logger.exception(e)
-    results.metadata.status = Status.QUERY_ERRORED
-    return results
-  
-  #: 4 - Output
-  results.results         = results_list
-  results.count           = len(results_list)
-  if municip_errors > 0:
-    results.metadata.status = Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING
-  else:
-    results.metadata.status = Status.QUERY_COMPLETE
-
-  return results
+def _update_entries(query_object: dict, results: list[dict]) -> dict:
+  new_query_object = query_object.copy()
+  new_query_object.update({
+    Keys.QUERY_RESULTS_COUNT : len(results),
+    Keys.QUERY_RESULTS       : results
+  })
+  return new_query_object
