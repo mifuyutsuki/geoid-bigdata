@@ -1,5 +1,5 @@
 import logging
-from geoid.constants import Keys, Status
+from geoid.constants import Keys, Status, Objects
 
 
 logger = logging.getLogger(__name__)
@@ -132,7 +132,7 @@ def _initialize_one(term: str, location: str):
   if len(location) <= 0:
     return None
 
-  query_object = BASE_DATA_OBJECT.copy()
+  query_object = Objects.BASE_QUERY_OBJECT.copy()
   query_object.update({
     Keys.QUERY_TERM     : term,
     Keys.QUERY_LOCATION : location,
