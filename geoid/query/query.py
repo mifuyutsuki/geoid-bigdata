@@ -91,11 +91,11 @@ def get(
   return results
 
 
-def get_saved(data_object: dict):
+def get_municipalities_only(data_object: dict):
   """
-  Get a Results object from a dict.
+  (Re-)retrieve municipalities data from a query object.
 
-  Use to load one query object from an autosave or an unpostprocessed export.
+  Called when querying from a save with missing municipalities data.
 
   Args:
       data_object (dict): Query object dictionary containing query information
@@ -106,11 +106,25 @@ def get_saved(data_object: dict):
   """
 
   results = Results()
-  results.metadata.status    = data_object[Keys.QUERY_STATUS]
-  results.metadata.query     = data_object[Keys.QUERY_KEYWORD]
-  results.metadata.lang      = data_object[Keys.QUERY_LANG]
-  results.metadata.timestamp = data_object[Keys.QUERY_TIMESTAMP]
-  results.results            = data_object[Keys.QUERY_RESULTS]
-  results.count              = data_object[Keys.QUERY_RESULTS_COUNT]
+  results.from_query_object(data_object)
+  results_list = results.results
+
+  try:
+  #: 3 - Municipality data
+    results_list, municip_errors = parsing.get_municipality_data(results_list)
+  except Exception as e:
+    #: Note: Errors from acquiring individual municipality data are stored as
+    #: error counts in municip_errors instead.
+    logger.exception(e)
+    results.metadata.status = Status.QUERY_ERRORED
+    return results
+  
+  #: 4 - Output
+  results.results         = results_list
+  results.count           = len(results_list)
+  if municip_errors > 0:
+    results.metadata.status = Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING
+  else:
+    results.metadata.status = Status.QUERY_COMPLETE
 
   return results
