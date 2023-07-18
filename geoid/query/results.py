@@ -14,39 +14,15 @@ class Results:
     self.results  = []
     self.count    = 0
     
-  # def export_csv(
-  #   self,
-  #   filename: str,
-  #   *,
-  #   quoting=csv.QUOTE_ALL,
-  #   lineterminator='\n',
-  #   **csv_kwargs
-  # ):
-  #   if len(self.results) <= 0:
-  #     raise ValueError('No search results entries to export')
-  #   if len(filename) <= 0:
-  #     raise ValueError('Filename cannot be blank')
-    
-  #   # Fields with newlines cause issues in CSV
-  #   results = deepcopy(self.results)
-  #   for result in results:
-  #     for value in result.values():
-  #       value = value.replace('\n', '; ')
-    
-  #   with open(filename, 'w', encoding='UTF-8') as csv_file:
-  #     csv_writer = csv.DictWriter(
-  #       csv_file,
-  #       fieldnames=self._keys,
-  #       quoting=quoting,
-  #       lineterminator=lineterminator,
-  #       **csv_kwargs
-  #     )
-  #     csv_writer.writeheader()
-  #     csv_writer.writerows(results)
 
-  #   logger.info(
-  #     f'Exported query to CSV file "{filename}"'
-  #   )
+  def from_query_object(self, data_object: dict):
+    self.metadata.status    = data_object[Keys.QUERY_STATUS]
+    self.metadata.query     = data_object[Keys.QUERY_KEYWORD]
+    self.metadata.lang      = data_object[Keys.QUERY_LANG]
+    self.metadata.timestamp = data_object[Keys.QUERY_TIMESTAMP]
+    self.results            = data_object[Keys.QUERY_RESULTS]
+    self.count              = data_object[Keys.QUERY_RESULTS_COUNT]
+
   
   def export_json(
     self,
@@ -70,7 +46,7 @@ class Results:
 
   def report(self) -> dict:
     report_dump = {
-      Keys.QUERY_KEYWORD               : self.metadata.query,
+      Keys.QUERY_KEYWORD       : self.metadata.query,
       Keys.QUERY_LANG          : self.metadata.lang,
       Keys.QUERY_TIMESTAMP     : self.metadata.timestamp,
       Keys.QUERY_STATUS        : self.metadata.status,
