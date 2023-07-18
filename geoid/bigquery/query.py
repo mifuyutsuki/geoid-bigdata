@@ -59,12 +59,10 @@ def get_one(
     return new_object, Status.QUERY_COMPLETE
   
   #: 3
-  query_ = new_object[Keys.QUERY_KEYWORD]
-  results = query.get(query_, webdriver, use_config=config)
-  new_object.update(results.report())
+  new_object.update(query.get(new_object, webdriver, use_config=config))
 
   #: 4
-  query_status = results.metadata.status
+  query_status = new_object[Keys.QUERY_STATUS]
   if query_status == Status.QUERY_MISSING:
     logger.warning(
       f'Query object skipped due to missing query: {query_keyword}'

@@ -22,8 +22,12 @@ SCROLL_END     = 2
 def get(
   query: str,
   webdriver: WebDriver,
-  config: Config
+  config: Config,
+  *,
+  use_lang: str=None
 ):
+  lang = use_lang if use_lang else config.query.lang
+
   #: Get query
   logger.info(
     f'Starting query: "{query}"'
@@ -31,7 +35,7 @@ def get(
   webdriver.get(
     Links.GMAPS_QUERY_TARGET.format(
       query=quote_plus(query),
-      query_lang=quote_plus(config.query.lang)
+      query_lang=quote_plus(lang)
     )
   )
 

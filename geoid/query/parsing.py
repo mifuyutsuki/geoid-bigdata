@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 
 from geoid.constants import Selectors
-from . import metadata, processing
+from . import processing
 
 import logging
 
@@ -9,7 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def parse_html(grabbed_html: str, metadata: metadata.Metadata):
+def parse_html(grabbed_html: str, query_lang: str):
   logger.info(
     f'Processing results'
   )
@@ -20,7 +20,7 @@ def parse_html(grabbed_html: str, metadata: metadata.Metadata):
   for result_raw in results_raw:
     if result_raw is not None:
       result = processing.get_entry_fields(
-        result_raw, query_lang=metadata.lang
+        result_raw, query_lang=query_lang
       )
       results.append(result)
   
