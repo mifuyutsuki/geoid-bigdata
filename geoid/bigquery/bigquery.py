@@ -73,7 +73,6 @@ class BigQuery:
   ):
     file_data = io.import_json(source_filename)
     data = preprocessing.initialize_from_data(term, file_data)
-    #: verify?
 
     self.data            = data
     self.querier         = None
@@ -95,7 +94,7 @@ class BigQuery:
     source_filename: str
   ):
     data = io.import_json(source_filename)
-    #: verify?
+    data = preprocessing.initialize_from_save(data)
 
     self.source_filename = source_filename
     self.data            = data

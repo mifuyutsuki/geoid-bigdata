@@ -16,6 +16,27 @@ BASE_DATA_OBJECT = {
 }
 
 
+def initialize_from_save(data: list[dict]):
+  locations_count = 0
+  missings_count  = 0
+
+  for data_object in data:
+    if data_object is None:
+      missings_count += 1
+      continue
+    if Keys.QUERY_KEYWORD not in data_object:
+      missings_count += 1
+      continue
+    if len(data_object[Keys.QUERY_KEYWORD]) <= 0:
+      missings_count += 1
+      continue
+    locations_count += 1
+  
+  _log_counts(locations_count, missings_count)
+  
+  return data
+
+
 def initialize_from_data(term: str, data: list[dict]) -> list[dict]:
   """
   Generate a queries data from an imported list of citynames in `data`.
@@ -44,11 +65,7 @@ def initialize_from_data(term: str, data: list[dict]) -> list[dict]:
       locations_count += 1
       queries_data.append(query_object)
   
-  if missings_count > 0:
-    logger.warning(
-      f'Found {missings_count} entry(s) with missing query location, '
-      f'which is skipped'
-    )
+  _log_counts(locations_count, missings_count)
 
   return queries_data
 
@@ -80,11 +97,7 @@ def initialize_from_list(term: str, locations: list[str]) -> list[dict]:
       locations_count += 1
       queries_data.append(query_object)
   
-  if missings_count > 0:
-    logger.warning(
-      f'Found {missings_count} entry(s) with missing query location, '
-      f'which is skipped'
-    )
+  _log_counts(locations_count, missings_count)
 
   return queries_data
 
@@ -139,3 +152,20 @@ def _get_location_from_data(data_object: dict):
     return None
 
   return location
+
+
+def _log_counts(locations: int, missings: int):
+  if missings > 0:
+    logger.warning(
+      f'Found {missings} entry(s) with missing query location, '
+      f'which is skipped'
+    )
+  
+  if locations == 0:
+    logger.warning(
+      f'No locations to query'
+    )
+  else:
+    logger.info(
+      f'Locations to query: {locations}'
+    )

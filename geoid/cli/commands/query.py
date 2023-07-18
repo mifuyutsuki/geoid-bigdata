@@ -148,16 +148,43 @@ def run_list(
   _run(querier, config)
 
 
+def run_save(
+  cities_file: str,
+  output_file: str,
+  *,
+  use_config: Config
+):
+  """
+  Launch a query using a queries data file, generateable using `geoid
+  generate`.
+
+  Args:
+      cities_file (str): Queries data JSON file, containing keywords to query.
+      output_file (str): Output JSON file containing query results.
+  
+  Kwargs:
+      use_config (Config): Config object containing advance query and program
+      settings.
+  """
+
+  config = use_config if use_config else Config()
+
+  querier = BigQuery(config)
+  querier.target_filename = output_file
+  querier.autosave_filename = output_file + '.autosave'
+
+  querier.import_save(cities_file)
+
+  _run(querier, config)
+
+
 def _run(querier: BigQuery, config: Config):
   if querier.count <= 0:
-    logger.warning(
+    print(
       'No queries to start'
     )
     return
   
-  logger.info(
-    f'Number of query keywords to execute: {querier.count}'
-  )
   print(
     f'Number of query keywords to execute: {querier.count}'
   )
