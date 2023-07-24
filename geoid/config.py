@@ -24,7 +24,7 @@ class FileIOConfig:
   
 class WebClientConfig:
   def __init__(self) -> None:
-    self.webclient          = 'firefox'
+    self.webclient          = 'chrome'
     self.show               = False
 
 class Config:
