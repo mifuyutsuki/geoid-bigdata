@@ -6,7 +6,7 @@ import logging
 from geoid.common import io
 from geoid.config import Config
 from geoid.constants import Status, Keys
-from . import preprocessing, postprocessing, query
+from . import postprocessing, query
 
 
 logger = logging.getLogger(__name__)
@@ -42,59 +42,13 @@ class BigQuery:
     self._progress      = 0
     self._count         = 0
     self._status_counts = self.BASE_STATUS_COUNTS
-  
-
-  def import_list(
-    self,
-    term: str,
-    cities: list[str]
-  ):
-    data = preprocessing.initialize_from_list(term, cities)
-
-    self.data            = data
-    self.querier         = None
-
-    self._progress       = 0
-    self._count          = len(data)
-    self._status_counts  = self.BASE_STATUS_COUNTS
-
-    logger.info(
-      f'Imported list of cities'
-    )
-    logger.info(
-      f'Locations to query: {self._count}'
-    )
 
 
-  def import_source(
-    self,
-    term: str,
-    source_filename: str
-  ):
-    file_data = io.import_json(source_filename)
-    data = preprocessing.initialize_from_data(term, file_data)
-
-    self.data            = data
-    self.querier         = None
-
-    self._progress       = 0
-    self._count          = len(data)
-    self._status_counts  = self.BASE_STATUS_COUNTS
-
-    logger.info(
-      f'Imported cities data JSON from "{source_filename}"'
-    )
-    logger.info(
-      f'Locations to query: {self._count}'
-    )
-
-
-  def import_save(
+  def import_data(
     self,
     source_filename: str
   ):
-    data = io.import_json(source_filename)
-    data = preprocessing.initialize_from_save(data)
+    data = io.import_data(source_filename)
 
     self.source_filename = source_filename
     self.data            = data
@@ -106,6 +60,9 @@ class BigQuery:
 
     logger.info(
       f'Imported save data JSON from "{source_filename}"'
+    )
+    logger.info(
+      f'Number of query objects: {self._count}'
     )
 
 
