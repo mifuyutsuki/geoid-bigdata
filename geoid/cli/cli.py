@@ -129,8 +129,8 @@ def build():
   )
   query_options_args.add_argument(
     '-browser', type=str,
-    choices=['firefox', 'chrome'],
-    help='use a particular supported browser client (default: firefox)',
+    choices=['chrome', 'firefox'],
+    help='use a particular supported browser client (default: chrome)',
     action='store',
     default='firefox',
     dest='browser'
