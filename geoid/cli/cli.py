@@ -70,7 +70,11 @@ def build():
   parser_query = subparsers.add_parser(
     'query',
     help='launch a query',
-    usage='%(prog)s term (-f filename | -l location [location ...]) -o filename [options]'
+    description=
+      'Launch a query using a queries data file. Each query in a queries data'
+      'file contains information on the location keyword and the query'
+      'keyword. To generate a queries data file, see help for geoid generate.',
+    usage='%(prog)s sourcefile -o outputfile [options]'
   )
   parser_query.set_defaults(func=commands.start_query)
 
@@ -78,34 +82,17 @@ def build():
 
   query_required_args = parser_query.add_argument_group('required')
   query_required_args.add_argument(
-    'term', type=str,
-    help='search term'
-  )
-  query_input_group = query_required_args.add_mutually_exclusive_group(required=True)
-  query_input_group.add_argument(
-    '-f', type=str,
-    help='JSON filename containing cities data',
-    nargs='?',
-    action='store',
-    metavar='filename',
-    dest='cities_file'
-  )
-  query_input_group.add_argument(
-    '-l', type=str,
-    help='city or cities to query by name',
-    nargs='*',
-    action='store',
-    metavar='location',
-    dest='cities'
+    'sourcefile', type=str,
+    help='input queries data JSON file'
   )
   query_required_args.add_argument(
     '-o', type=str,
     required=True,
-    help='filename of output JSON containing search results',
+    help='output queries data JSON file with search results',
     nargs='?',
     action='store',
-    metavar='filename',
-    dest='output'
+    metavar='outputfile',
+    dest='outputfile'
   )
 
   # ---------------------------------------------------------------------------
@@ -190,7 +177,13 @@ def build():
   parser_query = subparsers.add_parser(
     'generate',
     help='generate a starter queries data for editing and later use',
-    usage='%(prog)s term (-f filename | -l location [location ...]) -o filename [options]'
+    description=
+      'Generate a queries data file. The command accepts a list of cities '
+      'either in the argument or in a specified text file. Each non-blank line'
+      'in the text file is a city.',
+    usage=
+      '%(prog)s term (-f filename | -l location [location ...]) '
+      '-o filename [options]'
   )
   parser_query.set_defaults(func=commands.start_generate)
 
@@ -204,28 +197,28 @@ def build():
   generate_input_group = generate_required_args.add_mutually_exclusive_group(required=True)
   generate_input_group.add_argument(
     '-f', type=str,
-    help='JSON filename containing cities data',
+    help='text file containing list of cities',
     nargs='?',
     action='store',
     metavar='filename',
-    dest='cities_file'
+    dest='sourcefile'
   )
   generate_input_group.add_argument(
     '-l', type=str,
-    help='city or cities to query by name',
+    help='list of city or cities to query by name',
     nargs='*',
     action='store',
     metavar='location',
-    dest='cities'
+    dest='sourcelist'
   )
   generate_required_args.add_argument(
     '-o', type=str,
     required=True,
-    help='filename of output JSON containing search results',
+    help='output queries data JSON',
     nargs='?',
     action='store',
     metavar='filename',
-    dest='output'
+    dest='outputfile'
   )
 
   # ---------------------------------------------------------------------------

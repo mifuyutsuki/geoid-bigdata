@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 def start_query(args):
   if args.timestamp:
-    if "{timestamp}" not in args.output:
+    if "{timestamp}" not in args.outputfile:
       print(
         'Specify timestamp location in the output filename using {timestamp} '
         'to use the timestamp option'
@@ -20,9 +20,9 @@ def start_query(args):
       return
     else:      
       timestamp = time.strftime('%Y%m%d_%H%M%S')
-      output_file = args.output.replace("{timestamp}", timestamp)
+      output_file = args.outputfile.replace("{timestamp}", timestamp)
   else:
-    output_file = args.output
+    output_file = args.outputfile
   
   config = Config()
   config.query.depth                 = args.depth
@@ -37,34 +37,18 @@ def start_query(args):
   config.postproc.convert_ascii      = args.convert_ascii
   config.postproc.replace_newline    = args.replace_newline
 
-  if args.cities is not None:
-    print(
-      f'Launcing query, source: list.\n'
-      f'Query keyword: "{args.term} <cityname>"'
-    )
-    log_start(args.show_info)
-    run_list(
-      term=args.term,
-      cities=args.cities,
-      output_file=output_file,
-      use_config=config
-    )
-  elif args.cities_file is not None:
-    print(
-      f'Launching query, source: file.\n'
-      f'Query keyword: "{args.term} <cityname>"'
-    )
-    log_start(args.show_info)
-    run_batch(
-      term=args.term,
-      source_file=args.cities_file,
-      output_file=output_file,
-      use_config=config
-    )
+  print(
+    f'Launching query, source file: {args.sourcefile}.'
+  )
+  log_start(show_info=args.show_info)
+  run_batch(
+    source_file=args.sourcefile,
+    output_file=output_file,
+    use_config=config
+  )
 
 
 def run_batch(
-  term: str,
   source_file: str,
   output_file: str,
   *,
@@ -101,79 +85,7 @@ def run_batch(
   querier.target_filename   = output_file
   querier.autosave_filename = output_file + '.autosave'
 
-  querier.import_source(term, source_file)
-
-  _run(querier, config)
-
-
-def run_list(
-  term: str,
-  cities: list[str],
-  output_file: str,
-  *,
-  use_config: Config=None
-):
-  """
-  Launch a query for "term cityname" for citynames in array `cities`.
-
-  Given `term` and list of city names given in array  `cities`, start a batch
-  query for "term cityname" and output its results to JSON file `output_file`.
-  
-  Using `use_config` settings, query results may be postprocessed, for example
-  to filter for city-mismatched results and/or flatten to a single-layered JSON
-  array of objects.
-
-  In addition, the function may also create unpostprocessed autosave file
-  `output_file.autosave` as well as log file `./logs/timestamp.log`. This may
-  be changed in `use_config`.
-
-  Args:
-      term (str): Query term which will prepend the citynames.
-      cities (list of str): List or array of citynames.
-      output_file (str): Output JSON file containing query results.
-
-  Kwargs:
-      use_config (Config): Config object containing advanced query and program
-      settings.
-  """
-
-  config = use_config if use_config else Config()
-
-  querier = BigQuery(config)
-  querier.target_filename   = output_file
-  querier.autosave_filename = output_file + '.autosave'
-
-  querier.import_list(term, cities)
-
-  _run(querier, config)
-
-
-def run_save(
-  cities_file: str,
-  output_file: str,
-  *,
-  use_config: Config
-):
-  """
-  Launch a query using a queries data file, generateable using `geoid
-  generate`.
-
-  Args:
-      cities_file (str): Queries data JSON file, containing keywords to query.
-      output_file (str): Output JSON file containing query results.
-  
-  Kwargs:
-      use_config (Config): Config object containing advance query and program
-      settings.
-  """
-
-  config = use_config if use_config else Config()
-
-  querier = BigQuery(config)
-  querier.target_filename = output_file
-  querier.autosave_filename = output_file + '.autosave'
-
-  querier.import_save(cities_file)
+  querier.import_data(source_file)
 
   _run(querier, config)
 
