@@ -22,7 +22,7 @@ LOG_CONFIG_STD = {
     'console': {
       'class': 'logging.StreamHandler',
       'stream': 'ext://sys.stdout',
-      'level': 'WARNING',
+      'level': 'INFO',
       'formatter': 'std'
     },
     'file': {
@@ -40,42 +40,12 @@ LOG_CONFIG_STD = {
 }
 
 
-LOG_CONFIG_INFO = LOG_CONFIG_STD.copy()
-LOG_CONFIG_INFO.update({
-  'handlers': {
-    'console': {
-      'level': 'INFO'
-    }
-  }
-})
-
-
 def _check_folder():
   if not os.path.exists(r'./logs/'):
     os.mkdir(r'./logs/')
 
 
-def log_start(show_info=False):
-  if show_info:
-    log_info()
-  else:
-    log_std()
-
-
-def log_std():
-  """
-  Start logging with level WARNING on stdout and INFO file.
-  """
-
+def log_start():
   _check_folder()
   logging.config.dictConfig(LOG_CONFIG_STD)
-
-
-def log_info():
-  """
-  Start logging with level INFO on both stdout and file.
-  """
-
-  _check_folder()
-  logging.config.dictConfig(LOG_CONFIG_INFO)
   
