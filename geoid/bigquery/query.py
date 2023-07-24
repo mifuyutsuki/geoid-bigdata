@@ -54,8 +54,11 @@ def get_one(
     
   query_status = new_object[Keys.QUERY_STATUS]
 
-  #: 2  
+  #: 2
   if query_status == Status.QUERY_COMPLETE:
+    logger.info(
+      f'Already completed query: {query_keyword}'
+    )
     return new_object, Status.QUERY_COMPLETE
   
   #: 3

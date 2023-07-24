@@ -55,14 +55,16 @@ def get(
   #: 1 - Initializing
   query_status = new_query_object[Keys.QUERY_STATUS]
 
+  if query_status == Status.QUERY_COMPLETE:
+    return new_query_object
+
   query_lang = new_query_object[Keys.QUERY_LANG]
   if query_lang is None:
     query_lang = config.query.lang
   if len(query_lang) <= 0:
     query_lang = config.query.lang
 
-  if query_status == Status.QUERY_COMPLETE or \
-     query_status == Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING:
+  if query_status == Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING:
     #: Go straight for municipality get
     results_list = new_query_object[Keys.QUERY_RESULTS]
 
