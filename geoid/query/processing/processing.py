@@ -1,4 +1,5 @@
 from bs4 import Tag
+from backoff import expo, on_exception
 
 from geoid.constants import Links, Keys
 from . import fields
@@ -70,12 +71,13 @@ def get_municipality_fields(result_entry: dict) -> dict:
   return new_result_entry
 
 
+@on_exception(expo, requests.exceptions.RequestException, max_tries=5)
 def _get_municipality_data(latitude, longitude) -> dict:
   request = requests.get(
     Links.MUNICIPALITY_QUERY_TARGET.format(
       latitude=latitude, longitude=longitude
     ),
-    timeout=(3.5, 5.0)
+    timeout=(2.5, 4.0)
   )
   request.raise_for_status()
   response = request.json()
