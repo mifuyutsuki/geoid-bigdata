@@ -1,5 +1,6 @@
 from setuptools import setup, find_packages
 
+
 version = {}
 with open('./geoid/version.py') as f:
   exec(f.read(), version)
@@ -8,15 +9,11 @@ version = version['__version__']
 with open('README.md', encoding='UTF-8') as f:
   readme = f.read()
 
-install_requires = [
-  'selenium>=4.10',
-  'beautifulsoup4',
-  'lxml',
-  'requests',
-  'unidecode'
-]
+install_requires = []
+with open('requirements.txt', encoding='UTF-8') as f:
+  for line in f:
+    install_requires.append(line)
 
-#: Links pending publication
 
 setup(
   name='geoid-bigdata',
