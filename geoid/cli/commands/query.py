@@ -40,7 +40,7 @@ def start_query(args):
   print(
     f'Launching query, source file: {args.sourcefile}.'
   )
-  log_start(show_info=args.show_info)
+  log_start()
   run_batch(
     source_file=args.sourcefile,
     output_file=output_file,
@@ -92,14 +92,7 @@ def run_batch(
 
 def _run(querier: BigQuery, config: Config):
   if querier.count <= 0:
-    print(
-      'No queries to start'
-    )
     return
-  
-  print(
-    f'Number of query keywords to execute: {querier.count}'
-  )
 
   #: Initialize web client
   logger.info('Initializing web client')
@@ -114,7 +107,6 @@ def _run(querier: BigQuery, config: Config):
 
   #: Query
   try:
-    print('')
     querier = _get_all(querier)
   finally:
     logger.info('Terminating web client')
@@ -126,10 +118,6 @@ def _run(querier: BigQuery, config: Config):
   #: Export
   if querier.count > 0:
     querier.export_json(querier.target_filename)
-    print('')
-    print(
-      f'Exported to JSON file "{querier.target_filename}"'
-    )
   else:
     logger.info('No entries to export')
   querier.remove_autosave_if_set()
@@ -174,9 +162,6 @@ def _get_all(querier: BigQuery):
 
   while running:
     try:
-      print(
-        f'Querying: {querier.progress+1}/{querier.count}'
-      )
       querier.get_one()
     except StopIteration:
       running = False

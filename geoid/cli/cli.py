@@ -57,13 +57,13 @@ def build():
 
   # ===========================================================================
 
-  global_args = parser.add_argument_group('global options')
-  global_args.add_argument(
-    '--show-info-logs',
-    action='store_true',
-    help='show INFO logs to terminal in addition to WARNING logs',
-    dest='show_info'
-  )
+  # global_args = parser.add_argument_group('global options')
+  # global_args.add_argument(
+  #   '--show-info-logs',
+  #   action='store_true',
+  #   help='show INFO logs to terminal in addition to WARNING logs',
+  #   dest='show_info'
+  # )
 
   # ===========================================================================
 
@@ -119,7 +119,7 @@ def build():
     choices=['chrome', 'firefox'],
     help='use a particular supported browser client (default: chrome)',
     action='store',
-    default='firefox',
+    default='chrome',
     dest='browser'
   )
   query_options_args.add_argument(
