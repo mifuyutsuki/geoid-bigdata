@@ -5,6 +5,7 @@ import logging
 from geoid.config import Config
 from geoid.constants import Keys, Status
 from geoid.query import query
+from geoid.common import io
 
 
 logger = logging.getLogger(__name__)
@@ -37,13 +38,10 @@ def get_one(
   config: Config
 ):
   #: 1
-  if data_object is None:
-    return data_object, Status.QUERY_MISSING
-  
-  if Keys.QUERY_KEYWORD not in data_object:
-    return data_object, Status.QUERY_MISSING
-  
-  if data_object[Keys.QUERY_KEYWORD] is None:
+  if io._is_keyword_missing(data_object):
+    logger.warning(
+      f'Query skipped due to missing keyword'
+    )
     return data_object, Status.QUERY_MISSING
   
   new_object = data_object.copy()
@@ -57,7 +55,7 @@ def get_one(
   #: 2
   if query_status == Status.QUERY_COMPLETE:
     logger.info(
-      f'Already completed query: {query_keyword}'
+      f'Query already marked as complete: {query_keyword}'
     )
     return new_object, Status.QUERY_COMPLETE
   
@@ -68,7 +66,7 @@ def get_one(
   query_status = new_object[Keys.QUERY_STATUS]
   if query_status == Status.QUERY_MISSING:
     logger.warning(
-      f'Query object skipped due to missing query: {query_keyword}'
+      f'Query skipped due to missing keyword'
     )
   elif query_status == Status.QUERY_ERRORED:
     logger.error(

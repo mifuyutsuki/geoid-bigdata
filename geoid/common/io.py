@@ -26,7 +26,7 @@ def import_data(filename: str):
   missings  = 0
 
   for data_object in data:
-    if _is_missing(data_object):
+    if _is_keyword_missing(data_object):
       missings += 1
     else:
       locations += 1
@@ -105,12 +105,12 @@ def _initialize_one(term: str, location: str):
   return query_object
 
 
-def _is_missing(query_object: dict):
+def _is_keyword_missing(query_object: dict):
   if query_object is None:
     return True
-  if Keys.QUERY_KEYWORD not in query_object:
+  if not isinstance(query_object.get(Keys.QUERY_KEYWORD), str):
     return True
-  if len(query_object[Keys.QUERY_KEYWORD]) <= 0:
+  if len(query_object[Keys.QUERY_KEYWORD].strip()) <= 0:
     return True
   return False
 
