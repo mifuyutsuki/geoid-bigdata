@@ -42,10 +42,10 @@ def get(
   new_query_object = query_object.copy()
 
   #: 0 - Checking
-  if Keys.QUERY_KEYWORD not in new_query_object:
+  query = new_query_object.get(Keys.QUERY_KEYWORD)
+  if query is None:
     return _update_status(new_query_object, Status.QUERY_MISSING)
   
-  query = new_query_object[Keys.QUERY_KEYWORD]
   if len(query) <= 0:
     return _update_status(new_query_object, Status.QUERY_MISSING)
 
