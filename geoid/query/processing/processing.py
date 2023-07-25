@@ -1,36 +1,15 @@
 from bs4 import Tag
 from backoff import expo, on_exception
 
-from geoid.constants import Links, Keys
+from geoid.constants import Links, Keys, Objects
 from . import fields
 
 import requests
 
 
-BASE_RESULT_ENTRY = {
-  Keys.LOCATION_NAME : None,
-  Keys.LOCATION_TYPE : None,
-  Keys.LATITUDE      : None,
-  Keys.LONGITUDE     : None,
-  Keys.PROVINCE_ID   : None,
-  Keys.PROVINCE_NAME : None,
-  Keys.CITY_ID       : None,
-  Keys.CITY_NAME     : None,
-  Keys.DISTRICT_ID   : None,
-  Keys.DISTRICT_NAME : None,
-  Keys.VILLAGE_ID    : None,
-  Keys.VILLAGE_NAME  : None,
-  Keys.POSTAL_CODE   : None,
-  Keys.RATING        : None,
-  Keys.REVIEWS       : None,
-  Keys.DESCRIPTION   : None,
-  Keys.LOCATION_LINK : None
-}
-
-
 def get_entry_fields(entry: Tag, query_lang='id') -> dict:
   #: 1. Fields initialization
-  result_entry = BASE_RESULT_ENTRY.copy()
+  result_entry = Objects.BASE_PLACE_OBJECT.copy()
 
   #: 2. Fields get from HTML
   result_entry.update({
