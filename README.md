@@ -29,9 +29,7 @@ The program does not and will not automatically bypass CAPTCHA.
 
 * **Python** 3.11 or later
 * **Selenium** 4.10 or later
-  * Supported browsers: **Firefox** (default), **Chrome**
-
-While Selenium supports [additional browsers](https://www.selenium.dev/documentation/webdriver/browsers/), GeoID has only been tested on the above.
+  * Supported browsers: **Chrome** (default), **Firefox**
 
 GeoID also uses the following libraries:
 
@@ -39,6 +37,10 @@ GeoID also uses the following libraries:
 * **requests**
 * **lxml**
 * **unidecode**
+* **selenium-stealth**
+* **backoff**
+
+While Selenium supports [additional browsers](https://www.selenium.dev/documentation/webdriver/browsers/), GeoID has only been tested on the above. Using **Chrome** is recommended as the program can benefit from `selenium-stealth`.
 
 Installing the program using `pip` (see [Installation](#installation)) or using `pip install -r requirements.txt` automatically installs the dependencies for you.
 
