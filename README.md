@@ -1,6 +1,6 @@
 # GeoID
 
-Maps data scraper-parser for Indonesia places. Uses Selenium. CLI available.
+Maps data scraper-parser for Indonesia places.
 
 ## Table of Contents
 
@@ -13,9 +13,13 @@ Maps data scraper-parser for Indonesia places. Uses Selenium. CLI available.
 
 ## About
 
-GeoID accepts a query or a list of queries based on (1) a single keyword and (2) a city or a list of cities in Indonesia. For example, given keyword `wisata` and city `kota bandung`, search for `wisata kota bandung`. The output is a JSON file containing the acquired search results. By default, GeoID does not "scroll down" search results; use `Config.query.depth` or CLI argument `-depth n` to change this setting.
+GeoID is a web scraper for places in Google Maps, designed primarily as a CLI and specifically for locations in Indonesia.
 
-The program pulls data from (1) the Google Maps search results page and (2) the kodeposku.com API to obtain location information from obtained coordinates. Due to the dynamic nature of the Google Maps frontend, Selenium is used to initialize a browser, with which the program can "scroll down" search results to obtain more results.
+GeoID runs a search/query of places generally given by a 'term' and a 'city', combined to create a query keyword "`term` `city`". For example, given keyword `wisata` and city `kota bandung`, search for `wisata kota bandung`. The set of terms, cities, and keywords are given by a file which can be generated (using `geoid generate`) and customized. The output is a JSON file containing places from the search results.
+
+By default, GeoID does not "scroll down" search results; use argument `-depth n` to change this setting. Using `-depth 0` makes GeoID scroll down as much as it can (called "infinite scroll" or "infinite depth").
+
+The program pulls data from (1) the Google Maps search results page to obtain places and (2) the kodeposku.com API to obtain location information from obtained coordinates. Due to the dynamic nature of the Google Maps frontend, an automated browser (in this case Selenium) is used, with which the program can dynamically interact with the web page.
 
 GeoID is created as part of an internship program.
 
@@ -42,7 +46,7 @@ GeoID also uses the following libraries:
 
 While Selenium supports [additional browsers](https://www.selenium.dev/documentation/webdriver/browsers/), GeoID has only been tested on the above. Using **Chrome** is recommended as the program can benefit from `selenium-stealth`.
 
-Installing the program using `pip` (see [Installation](#installation)) or using `pip install -r requirements.txt` automatically installs the dependencies for you.
+Installing the program using `pip` (see [Installation](#installation)) or using `pip install -r requirements.txt` automatically installs the dependencies for you. Browsers are not included in the automatic installation.
 
 ## Installation
 
@@ -65,3 +69,5 @@ On the repository path (using `cd` or by launching a new terminal in the path),
 ```bash
 python setup.py install
 ```
+
+The setup will additionally install any dependencies needed by GeoID.
