@@ -37,7 +37,7 @@ with open('README.md', encoding='UTF-8') as f:
 install_requires = []
 with open('requirements.txt', encoding='UTF-8') as f:
   for line in f:
-    install_requires.append(line)
+    install_requires.append(line.strip())
 
 
 setup(
