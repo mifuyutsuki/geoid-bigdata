@@ -19,7 +19,7 @@ GeoID runs a search/query of places generally given by a 'term' and a 'city', co
 
 By default, GeoID does not "scroll down" search results; use argument `-depth n` to change this setting. Using `-depth 0` makes GeoID scroll down as much as it can (called "infinite scroll" or "infinite depth").
 
-The program pulls data from (1) the Google Maps search results page to obtain places and (2) the kodeposku.com API to obtain location information from obtained coordinates. Due to the dynamic nature of the Google Maps frontend, an automated browser (in this case Selenium) is used, with which the program can dynamically interact with the web page.
+The program pulls data from (1) the Google Maps search results page to obtain places and (2) the kodeposku.com API to obtain location information from obtained coordinates. Due to the dynamic nature of the Google Maps frontend, an automated web browser (in this case Selenium) is used, with which the program can dynamically interact with the web page.
 
 GeoID is created as part of an internship program.
 
@@ -40,17 +40,16 @@ GeoID also uses the following libraries:
 * **BeautifulSoup4**
 * **requests**
 * **lxml**
-* **unidecode**
 * **selenium-stealth**
 * **backoff**
 
 While Selenium supports [additional browsers](https://www.selenium.dev/documentation/webdriver/browsers/), GeoID has only been tested on the above. Using **Chrome** is recommended as the program can benefit from `selenium-stealth`.
 
-Installing the program using `pip` (see [Installation](#installation)) or using `pip install -r requirements.txt` automatically installs the dependencies for you. Browsers are not included in the automatic installation.
+Using `pip install -r requirements.txt` during installation automatically installs the dependencies for you. Browsers are not included in the automatic installation.
 
 ## Installation
 
-Depending on your setup, you may need to replace `python` below with `python3` (Unix/macOS) or `py` (Windows).
+Depending on your setup, you may need to substitute `python` below with `python3` (Unix/macOS), `py` (Windows).
 
 ### (TBA) PyPI
 
@@ -58,15 +57,11 @@ Depending on your setup, you may need to replace `python` below with `python3` (
 
 ### From source
 
-Clone this repository:
+The following setup uses `git` to clone this repository.
 
 ```bash
 git clone https://github.com/mifuyutsuki/geoid-bigdata
-```
-
-On the repository path (using `cd` or by launching a new terminal in the path),
-
-```bash
+cd geoid-bigdata
 python setup.py install
 ```
 
