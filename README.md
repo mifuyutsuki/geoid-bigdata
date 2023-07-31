@@ -17,7 +17,7 @@ GeoID is a web scraper for places in Google Maps, designed primarily as a CLI an
 
 GeoID runs a search/query of places generally given by a 'term' and a 'city', combined to create a query keyword "`term` `city`". For example, given keyword `wisata` and city `kota bandung`, search for `wisata kota bandung`. The set of terms, cities, and keywords are given by a file which can be generated (using `geoid generate`) and customized. The output is a JSON file containing places from the search results.
 
-By default, GeoID does not "scroll down" search results; use argument `-depth n` to change this setting. Using `-depth 0` makes GeoID scroll down as much as it can (called "infinite scroll" or "infinite depth").
+By default, GeoID does not "scroll down" search results; use argument `-d n` or `--depth n`, where n is the number of "scrolls", to change this setting. Using `--depth 0` makes GeoID scroll down as much as it can (called "infinite scroll" or "infinite depth").
 
 The program pulls data from (1) the Google Maps search results page to obtain places and (2) the kodeposku.com API to obtain location information from obtained coordinates. Due to the dynamic nature of the Google Maps frontend, an automated web browser (in this case Selenium) is used, with which the program can dynamically interact with the web page.
 
