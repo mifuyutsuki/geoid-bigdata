@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import unidecode
+import unicodedata
 import logging
 from geoid.constants import Keys
 
@@ -91,7 +91,12 @@ def convert_ascii(data: list[dict]) -> list[dict]:
   
   def fun(s):
     if isinstance(s, str):
-      return unidecode(s, errors='replace', replace_str='?')
+      #: Looks a circular mess (encode -> decode), but it works.
+      return str(
+        unicodedata.normalize('NFKD', s)
+                   .encode('ascii', 'replace')
+                   .decode('utf-8', 'ignore')
+      )
     else:
       return s
   ascii_data = lambda_values(ascii_data, fun)
@@ -135,7 +140,7 @@ def lambda_values(
   for single_data in target_data:
     for key in single_data.keys():
       if isinstance(single_data[key], list):
-        target_data = lambda_values(target_data, value_function)
+        target_data = lambda_values(single_data[key], value_function)
       elif isinstance(single_data[key], dict):
         pass
       else:
