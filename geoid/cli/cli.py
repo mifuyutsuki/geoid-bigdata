@@ -69,7 +69,7 @@ def build():
     help='show this help message and exit'
   )
   help_args.add_argument(
-    '--version',
+    '-v', '--version',
     action='version',
     version=f'geoid-bigdata {__version__}',
     help='show program\'s version number and exit'
@@ -91,10 +91,10 @@ def build():
     'query',
     help='launch a query',
     description=
-      'Launch a query using a queries data file. Each query in a queries data'
-      'file contains information on the location keyword and the query'
+      'Launch a query using a queries data file. Each query in a queries data '
+      'file contains information on the location keyword and the query '
       'keyword. To generate a queries data file, see help for geoid generate.',
-    usage='%(prog)s sourcefile -o outputfile [options]'
+    usage='%(prog)s sourcefile -o outputfile [options]',
   )
   parser_query.set_defaults(func=commands.start_query)
 
@@ -106,7 +106,7 @@ def build():
     help='input queries data JSON file'
   )
   query_required_args.add_argument(
-    '-o', type=str,
+    '-o', '--output', type=str,
     required=True,
     help='output queries data JSON file with search results',
     nargs='?',
@@ -119,7 +119,7 @@ def build():
 
   query_options_args = parser_query.add_argument_group('command options')
   query_options_args.add_argument(
-    '-depth', type=int,
+    '-d', '--depth', type=int,
     help='search depth; set 0 for endless (default: 1)',
     action='store',
     default=1,
@@ -127,15 +127,7 @@ def build():
     dest='depth'
   )
   query_options_args.add_argument(
-    '-indent', type=int,
-    help='set output file indent by number of spaces (default: 2)',
-    action='store',
-    default=2,
-    metavar='<number>',
-    dest='indent'
-  )
-  query_options_args.add_argument(
-    '-browser', type=str,
+    '-b', '--browser', type=str,
     choices=['chrome', 'firefox'],
     help='use a particular supported browser client (default: chrome)',
     action='store',
@@ -143,50 +135,59 @@ def build():
     dest='browser'
   )
   query_options_args.add_argument(
-    '-init-pause', type=float,
-    help='pause for a set number of seconds after access (default: 0.0)',
-    action='store',
-    default=0.0,
-    dest='init_pause'
-  )
-  query_options_args.add_argument(
-    '--show',
+    '-s', '--show',
     help='display browser client',
     action='store_true',
     dest='show'
   )
   query_options_args.add_argument(
-    '--timestamp',
+    '-t', '--timestamp',
     help='include timestamp in output filename with {timestamp} in filename',
     action='store_true',
     dest='timestamp'
   )
   query_options_args.add_argument(
-    '--keep-autosave',
+    '-A', '--keep-autosave',
     help='don\'t remove the generated autosave on completion; autosaves are not postprocessed',
     action='store_true',
     dest='keep_autosave'
   )
   query_options_args.add_argument(
-    '--filter',
+    '-in', '--indent', type=int,
+    help='set output file indent by number of spaces (default: 2)',
+    action='store',
+    default=2,
+    metavar='<number>',
+    dest='indent'
+  )
+  query_options_args.add_argument(
+    '-ip', '--init-pause', type=float,
+    help='pause for a set number of seconds after access (default: 0.0)',
+    action='store',
+    default=0.0,
+    metavar='<float>',
+    dest='init_pause'
+  )
+  query_options_args.add_argument(
+    '-fi', '--filter',
     help='filter query results with mismatched cities',
     action='store_true',
     dest='filter'
   )
   query_options_args.add_argument(
-    '--flat',
+    '-fl', '--flat',
     help='flatten query results to only a one-layer array of objects',
     action='store_true',
     dest='flatten'
   )
   query_options_args.add_argument(
-    '--ascii',
+    '-as', '--ascii',
     help='convert text in query results values to ASCII',
     action='store_true',
     dest='convert_ascii'
   )
   query_options_args.add_argument(
-    '--replace-newline',
+    '-rn', '--replace-newline',
     help='replace newlines in query results values with semicolons',
     action='store_true',
     dest='replace_newline'
@@ -199,7 +200,7 @@ def build():
     help='generate a starter queries data for editing and later use',
     description=
       'Generate a queries data file. The command accepts a list of cities '
-      'either in the argument or in a specified text file. Each non-blank line'
+      'either in the argument or in a specified text file. Each non-blank line '
       'in the text file is a city.',
     usage=
       '%(prog)s term (-f filename | -l location [location ...]) '
@@ -216,7 +217,7 @@ def build():
   )
   generate_input_group = generate_required_args.add_mutually_exclusive_group(required=True)
   generate_input_group.add_argument(
-    '-f', type=str,
+    '-f', '--file', type=str,
     help='text file containing list of cities',
     nargs='?',
     action='store',
@@ -224,7 +225,7 @@ def build():
     dest='sourcefile'
   )
   generate_input_group.add_argument(
-    '-l', type=str,
+    '-l', '--list', type=str,
     help='list of city or cities to query by name',
     nargs='*',
     action='store',
@@ -232,7 +233,7 @@ def build():
     dest='sourcelist'
   )
   generate_required_args.add_argument(
-    '-o', type=str,
+    '-o', '--output', type=str,
     required=True,
     help='output queries data JSON',
     nargs='?',
@@ -245,7 +246,7 @@ def build():
 
   generate_options_args = parser_query.add_argument_group('Options')
   generate_options_args.add_argument(
-    '-indent', type=int,
+    '-in', '--indent', type=int,
     help='set output file indent by number of spaces (default: 2)',
     action='store',
     default=2,
