@@ -47,13 +47,20 @@ setup(
   long_description=readme,
   long_description_content_type='text/markdown',
   url='https://github.com/mifuyutsuki/geoid-bigdata',
-  author='mifuyutsuki',
+  author='Mifuyu',
+  author_email='mifuyutsuki@proton.me',
   classifiers=[  
-    "Development Status :: 3 - Alpha"
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Information Technology",
+    "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
     "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Natrual Language :: Indonesian",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.11"
   ],
-  keywords='maps, scraper, indonesia',
+  keywords='maps, places, locations, scraper, scraping, crawler, indonesia',
   package_dir={'': 'geoid'},
   packages=find_packages(where='geoid'),
   python_requires='>=3.11, <4',
