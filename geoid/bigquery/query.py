@@ -75,7 +75,7 @@ def get_one(
   #: 2
   if query_status == Status.QUERY_COMPLETE:
     logger.info(
-      f'Query already marked as complete: {query_keyword}'
+      f'Query already marked as complete: "{query_keyword}"'
     )
     return new_object, Status.QUERY_COMPLETE
   
@@ -90,18 +90,18 @@ def get_one(
     )
   elif query_status == Status.QUERY_ERRORED:
     logger.error(
-      f'Could not do query, continuing: {query_keyword}'
+      f'Could not do query, continuing: "{query_keyword}"'
     )
   elif query_status == Status.QUERY_COMPLETE:
     logger.info(
-      f'Completed query: {query_keyword}'
+      f'Completed query: "{query_keyword}"'
     )
   elif query_status == Status.QUERY_COMPLETE_MUNICIPALITIES_MISSING:
     logger.info(
-      f'Completed query: {query_keyword}'
+      f'Completed query: "{query_keyword}"'
     )
     logger.warning(
-      f'Query contains missing municipality data: {query_keyword}'
+      f'Query contains missing municipality data: "{query_keyword}"'
     )
   
   return new_object, query_status
